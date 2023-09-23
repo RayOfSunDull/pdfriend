@@ -1,0 +1,6 @@
+.venv
+legacy
+test
+init.sh
+dist
+*__pycache__
