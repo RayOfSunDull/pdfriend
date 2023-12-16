@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pdfriend"
-version = "0.0.0"
+version = "0.1.0"
 description = "A command line utility for easily modifying PDF files"
 authors = ["A. Grigoras"]
 license = "GPLv3"
