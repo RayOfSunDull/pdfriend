@@ -3,15 +3,6 @@ from pdfriend.classes.platforms import Platform
 import pdfriend.commands as commands
 
 
-def validate_arg_num(command_name: str, expected_nargs: int, given_nargs: int):
-    # I allow passing more arguments than expected and just ignore the extra ones
-    if given_nargs == expected_nargs:
-        return
-    print(
-        f"{command_name} command takes {expected_nargs} arguments, {given_nargs} given"
-    )
-
-
 def main():
     parser = argparse.ArgumentParser(add_help=False)
 
