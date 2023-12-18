@@ -1,9 +1,9 @@
 [tool.poetry]
 name = "pdfriend"
-version = "0.1.0"
+version = "0.1.1"
 description = "A command line utility for easily modifying PDF files"
 authors = ["A. Grigoras"]
-license = "GPLv3"
+license = "GPL-3.0-or-later"
 readme = "README.md"
 scripts = { "pdfriend" = "pdfriend.main:main" }
 
