@@ -7,14 +7,17 @@
 - delete PDF pages
 - change the order of pages in a PDF
 
-## Installation (manual)
-At the moment, there is no PyPI package for pdfriend, but you can install it manually as such:
+## Installation
+The recommended way to install `pdfriend` is through [pipx](https://github.com/pypa/pipx). Simply run:
 ```sh
-git clone https://github.com/RayOfSunDull/pdfriend
-cd pdfriend
-pip install .
+pipx install pdfriend
 ```
 You need a working python 3.10 or newer installation.
+
+Alternatively, you can install it as you would any other PyPI package, for example using pip:
+```sh
+pip install pdfriend
+```
 
 ## Usage
 To access instructions for the usage of `pdfriend`:
