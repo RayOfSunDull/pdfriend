@@ -8,6 +8,7 @@ def main():
 
     parser.add_argument("-h", "--help", action="store_true")
     parser.add_argument("-v", "--version", action="store_true")
+    parser.add_argument("-i", "--inplace", action="store_true")
 
     parser.add_argument("commands", type=str, nargs="*")
 
@@ -47,11 +48,17 @@ def main():
             print("You need to specify a file to be inverted")
             return
 
+        if args.inplace:
+            args.outfile = args.commands[1]
+
         commands.invert(args.commands[1], args.outfile)
     elif command == "swap":
         if len(args.commands) < 4:
             print("You need to specify a file and 2 pages to be swapped")
             return
+
+        if args.inplace:
+            args.outfile = args.commands[1]
 
         commands.swap(args.commands[1], args.commands[2], args.commands[3])
     elif command == "clear":
@@ -60,6 +67,9 @@ def main():
         if len(args.commands) < 3:
             print("You need to specify a file and the pages to be deleted")
             return
+
+        if args.inplace:
+            args.outfile = args.commands[1]
 
         commands.remove(args.commands[1], args.commands[2], args.outfile)
     else:

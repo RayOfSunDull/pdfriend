@@ -28,18 +28,20 @@ merges the given files into one pdf. It can handle multiple pdfs, as well conver
     "edit": """pdfriend edit [filename]
         edit the selected file in place, using a set of subcommands. After launching the edit shell, you can type h or help to list the subcommands.
     """,
-    "invert": """pdfriend invert [filename] [-o|--outfile outfile?=pdfriend_output.pdf]
-        create a PDF file with the pages of the input file, but in inverted order.
+    "invert": """pdfriend invert [filename] [-o|--outfile outfile?=pdfriend_output.pdf] [-i|--inplace?]
+        create a PDF file with the pages of the input file, but in inverted order. Adding -i or --inplace will make it so the input file is modified, instead of creating a new one.
 
         examples:
             pdfriend invert puppy.pdf -o puppy-inv.pdf
                 inverts the pages of puppy.pdf and saves to puppy-inv.pdf
+            pdfriend invert kitty.pdf -i
+                inverts the pages of kitty.pdf
     """,
     "clear": """pdfriend clear
         clears the pdfriend cache.
     """,
-    "remove": """pdfriend remove [filename] [pages] [-o|--outfile?=pdfriend_output.pdf]
-        removes specified pages from the PDF file.
+    "remove": """pdfriend remove [filename] [pages] [-o|--outfile?=pdfriend_output.pdf] [-i|--inplace?]
+        removes specified pages from the PDF file. Adding -i or --inplace will make it so the input file is modified, instead of creating a new one.
 
         examples:
             pdfriend remove input.pdf 6
@@ -48,8 +50,8 @@ merges the given files into one pdf. It can handle multiple pdfs, as well conver
                 removes pages 5,6,9 and saves to out.pdf
             pdfriend remove input.pdf 3-7 -o out
                 removes pages 3 through 7 (INCLUDING 7) and saves to out.pdf
-            pdfriend remove input.pdf 13,2,4-7,1 -o input.pdf
-                removes pages 1,2,4,5,6,7,13 and saves to the input file
+            pdfriend remove input.pdf 13,2,4-7,1 -i
+                removes pages 1,2,4,5,6,7,13 from input.pdf (modifies the file)
     """,
 }
 
