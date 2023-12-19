@@ -11,39 +11,6 @@ whitespace_pattern = re.compile("\s+")
 def parse_command_string(command_string: str) -> list[str]:
     return re.split(whitespace_pattern, command_string)
 
-def parse_number_subrange(subrange: str, all_numbers: list[int]) -> list[int]:
-    split_subrange = subrange.split("-")
-    first, last = split_subrange[0], split_subrange[-1]
-
-    lower = 0
-    upper = 0
-    if first < last:
-        lower, upper = first, last
-    else:
-        lower, upper = last, first
-
-    # this makes it so, say, -23 gives all pages up to and including 23
-    # and 12- gives all pages from 12 onwards
-    if lower == "":
-        lower = all_numbers[0]
-    if upper == "":
-        upper = all_numbers[-1]
-
-    return list(range(int(lower), int(upper)))
-
-def parse_number_range(numbers: str, all_numbers: list[int]) -> list[int]:
-    if numbers == "all":
-        return all_numbers
-    result = []
-    for num in numbers.split(","):
-        if "-" not in num:
-            result.append(int(num))
-        else:
-            result.extend(parse_number_subrange(num, all_numbers))
-
-    # take only the unique pages that actually exist and sort
-    return sorted(list(set(result) & set(all_numbers)))
-
 def validate_arg_num(command_name: str, expected_nargs: int, given_nargs: int):
     # I allow passing more arguments than expected and just ignore the extra ones
     if given_nargs >= expected_nargs:
@@ -53,7 +20,7 @@ def validate_arg_num(command_name: str, expected_nargs: int, given_nargs: int):
     )
 
 def validate_page_num(pdf: wrappers.PDFWrapper, page_num: int):
-    npages = len(pdf.pages)
+    npages = pdf.len()
     if page_num > 0 or page_num <= npages:
         return
     raise exceptions.EditError(
@@ -167,11 +134,12 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
         raise exceptions.EditExit()
     if short == "r":
         validate_arg_num(command, 2, nargs)
-        page_range = []
+        pages = []
         try:
-            page_range = parse_number_range(args[1], all_pages)
-        except Exception:
-            raise exceptions.EditError(f"\"{args[1]}\" is not a valid page range")
+            pages = pdf.slice(args[1])
+        except Exception as e:
+            raise e
+            raise exceptions.EditError(f"\"{args[1]}\" is not a valid PDF slice")
 
         angle = 0
         try:
@@ -179,18 +147,18 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
         except Exception:
             raise exceptions.EditError(f"angle \"{args[2]}\" must be a number")
 
-        for page in page_range:
+        for page in pages:
             validate_page_num(pdf, page)
             pdf.rotate_page(page, angle)
     if short == "d":
         validate_arg_num(command, 1, nargs)
-        page_range = []
+        pages = []
         try:
-            page_range = parse_number_range(args[1], all_pages)
+            pages = pdf.slice(args[1])
         except Exception:
-            raise exceptions.EditError(f"\"{args[1]}\" is not a valid page range")
+            raise exceptions.EditError(f"\"{args[1]}\" is not a valid PDF slice")
 
-        for page in page_range:
+        for page in pages:
             pdf.pop_page(page)
     if short == "s":
         validate_arg_num(command, 2, nargs)

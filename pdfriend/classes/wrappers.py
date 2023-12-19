@@ -24,6 +24,34 @@ class PDFWrapper:
     def len(self):
         return len(self.pages)
 
+    def final_page(self):
+        return len(self.pages) + 1
+
+    def slice(self, slice_str: str) -> list[int]:
+        if slice_str == "all":
+            return self.pages
+
+        result = []
+        for subslice in slice_str.split(","):
+            if "-" not in subslice:
+                result.append(int(subslice))
+                continue
+
+            split_subslice = subslice.split("-")
+            first, last = split_subslice[0], split_subslice[-1]
+
+            # such that n- means n-end and -n means 1-n
+            first = 1 if first == "" else int(first)
+            last = self.final_page() if last == "" else int(last)
+
+            # making sure the subrange is within bounds
+            lower = max(min(first, last), 1)
+            upper = min(max(first, last), self.final_page())
+
+            result.extend(list(range(lower, upper)))
+
+        return sorted(list(set(result)))
+
     def rotate_page(self, page_num: int, angle: float) -> Self:
         int_angle = int(angle)
         if int_angle % 90 == 0:
