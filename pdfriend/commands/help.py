@@ -40,6 +40,17 @@ merges the given files into one pdf. It can handle multiple pdfs, as well conver
     "clear": """pdfriend clear
         clears the pdfriend cache.
     """,
+    "swap": """pdfriend swap [filename] [page_0] [page_1] [-o|--outfile?=pdfriend_output.pdf] [-i|--inplace?]
+        swaps the specified pages in the PDF file. Adding -i or --inplace will make it so the input file is modified, instead of creating a new one.
+
+        examples:
+            pdfriend swap notes.pdf 1 3 -i
+                swaps pages 1 and 3 in notes.pdf (modifies the file)
+            pdfriend swap templ.pdf 6 3 -o new-templ.pdf
+                swaps pages 6 and 3 and saves to new-templ.pdf
+            pdfriend swap k.pdf 2 9
+                swaps pages 2 and 9 and saves to pdfriend_output.pdf
+    """,
     "remove": """pdfriend remove [filename] [pages] [-o|--outfile?=pdfriend_output.pdf] [-i|--inplace?]
         removes specified pages from the PDF file. Adding -i or --inplace will make it so the input file is modified, instead of creating a new one.
 
