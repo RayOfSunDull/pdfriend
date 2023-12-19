@@ -12,7 +12,7 @@ The recommended way to install `pdfriend` is through [pipx](https://github.com/p
 ```sh
 pipx install pdfriend
 ```
-You need a working python 3.10 or newer installation.
+You need a working python 3.11 or newer installation.
 
 Alternatively, you can install it as you would any other PyPI package, for example using pip:
 ```sh
