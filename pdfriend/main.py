@@ -56,6 +56,12 @@ def main():
         commands.swap(args.commands[1], args.commands[2], args.commands[3])
     elif command == "clear":
         commands.clear()
+    elif command == "remove":
+        if len(args.commands) < 3:
+            print("You need to specify a file and the pages to be deleted")
+            return
+
+        commands.remove(args.commands[1], args.commands[2], args.outfile)
     else:
         print(f"command \"{command}\" not recognized")
         print("use pdfriend help for a list of the available commands")
