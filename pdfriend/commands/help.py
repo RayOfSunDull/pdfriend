@@ -38,6 +38,19 @@ merges the given files into one pdf. It can handle multiple pdfs, as well conver
     "clear": """pdfriend clear
         clears the pdfriend cache.
     """,
+    "remove": """pdfriend remove [filename] [pages] [-o|--outfile?=pdfriend_output.pdf]
+        removes specified pages from the PDF file.
+
+        examples:
+            pdfriend remove input.pdf 6
+                removes page 6 and saves to pdfriend_output.pdf
+            pdfriend remove input.pdf 5,6,9 -o out.pdf
+                removes pages 5,6,9 and saves to out.pdf
+            pdfriend remove input.pdf 3-7 -o out
+                removes pages 3 through 7 (INCLUDING 7) and saves to out.pdf
+            pdfriend remove input.pdf 13,2,4-7,1 -o input.pdf
+                removes pages 1,2,4,5,6,7,13 and saves to the input file
+    """,
 }
 
 
