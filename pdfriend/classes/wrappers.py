@@ -88,7 +88,9 @@ class PDFWrapper:
         for page in self.pages:
             writer.add_page(page)
 
-        writer.write(filename)
+        writer.write(
+            pathlib.Path(filename).with_suffix(".pdf")
+        )
 
     def backup(self, name: str | pathlib.Path) -> pathlib.Path:
         if not isinstance(name, pathlib.Path):

@@ -11,7 +11,7 @@ def main():
 
     parser.add_argument("commands", type=str, nargs="*")
 
-    parser.add_argument("-o", "--outfile", type=str, default="pdfriend_output.pdf")
+    parser.add_argument("-o", "--outfile", type=str, default="pdfriend_output")
     parser.add_argument("-q", "--quality", type=int, default=100)
 
     args = parser.parse_args()
