@@ -48,7 +48,7 @@ class PDFWrapper:
             lower = max(min(first, last), 1)
             upper = min(max(first, last), self.final_page())
 
-            result.extend(list(range(lower, upper)))
+            result.extend(list(range(lower, upper + 1)))
 
         return sorted(list(set(result)))
 
