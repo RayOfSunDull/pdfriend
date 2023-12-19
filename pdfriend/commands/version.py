@@ -1,5 +1,4 @@
-import pkg_resources
-
+from importlib.metadata import metadata
 
 def version():
-    return pkg_resources.get_distribution("pdfriend").version
+    return metadata("pdfriend")["Version"]
