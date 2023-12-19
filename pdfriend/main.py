@@ -60,7 +60,12 @@ def main():
         if args.inplace:
             args.outfile = args.commands[1]
 
-        commands.swap(args.commands[1], args.commands[2], args.commands[3])
+        commands.swap(
+            args.commands[1],
+            int(args.commands[2]),
+            int(args.commands[3]),
+            args.outfile
+        )
     elif command == "clear":
         commands.clear()
     elif command == "remove":
