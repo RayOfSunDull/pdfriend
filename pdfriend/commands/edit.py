@@ -108,8 +108,6 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
     else:
         raise exceptions.EditError(f"command \"{command}\" does not exist")
 
-    all_pages = list(range(1, len(pdf.pages) + 1))
-
     if short == "h":
         if len(args) == 1:
              print("pdfriend edit shell for quick changes. Commands:")
