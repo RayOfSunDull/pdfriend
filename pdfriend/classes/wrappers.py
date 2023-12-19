@@ -70,6 +70,8 @@ class PDFWrapper:
         self[page_num_0] = self[page_num_1]
         self[page_num_1] = temp
 
+        return self
+
     def merge_with(self, other: Self) -> Self:
         self.pages.extend(other.pages)
 
