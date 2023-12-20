@@ -65,6 +65,14 @@ class PDFWrapper:
     def pop_page(self, page_num: int) -> pypdf.PageObject:
         return self.pages.pop(page_num - 1)
 
+    def append_page(self, page: pypdf.PageObject) -> Self:
+        self.pages.append(page)
+        return self
+
+    def extend(self, pages: list[pypdf.PageObject]) -> Self:
+        self.pages.extend(pages)
+        return self
+
     def swap_pages(self, page_num_0: int, page_num_1: int) -> Self:
         temp = self[page_num_0]
         self[page_num_0] = self[page_num_1]
@@ -82,8 +90,17 @@ class PDFWrapper:
 
         return self
 
-    # def interlace(self, other: Self) -> Self:
-    #     return PDFWrapper()
+    def weave_with(self, other: Self) -> Self:
+        result = PDFWrapper()
+        for odd_page, even_page in zip(self.pages, other.pages):
+            result.extend([odd_page, even_page])
+
+        if self.len() > other.len():
+            result.extend(self.pages[other.len():])
+        elif other.len() > self.len():
+            result.extend(other.pages[self.len():])
+
+        return result
 
     def write(self, filename: str):
         writer = pypdf.PdfWriter()
