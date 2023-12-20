@@ -14,9 +14,28 @@ help_blurbs = {
         display help message. If given a command, it will only display the help message for that command.
     """,
     "merge": """pdfriend merge [filename1] [filename2?] ... [-o|--outfile outfile?=pdfriend_output.pdf] [-q|--quality quality?=100]
+        merge the given files into one pdf. It can handle multiple pdfs, as well convert and merge png and jpg images. Glob patterns are also supported. You can specify the output filename using the -o or --outfile flag, otherwise it defaults to pdfriend_output.pdf. You can also specify the quality when images are converted to pdfs via the -q or --quality flag. It's an integer going from 0 to 100, 100 is no lossy compression and 0 is full lossy compression.
 
-merges the given files into one pdf. It can handle multiple pdfs, as well convert and merge png and jpg images. Glob patterns are also supported. You can specify the output filename using the -o or --outfile flag, otherwise it defaults to pdfriend_output.pdf. You can also specify the quality when images are converted to pdfs via the -q or --quality flag. It's an integer going from 0 to 100, 100 is no lossy compression and 0 is full lossy compression.
+    examples:
+        pdfriend merge pdf1.pdf img.png pdf2.pdf -o merged.pdf
+            merges all of those into merged.pdf, preserving the quality of img.png
+        pdfriend merge folder_name/* -o merged.pdf -q 50
+            merges all files in directory folder_name into merged.pdf and compresses the images by 50%.
+        pdfriend merge pdf1.pdf folder_name/* img.jpg pdf2.pdf -o apricot.pdf
+            merges every file given, including all files in folder_name, into apricot.pdf
+    """,
+    "split": """pdfriend split [filename] [pages] ... [-o|--outfile outfile?=pdfriend_output]
+        split the given file at the given points. Every point is included in the part after, not before it.
 
+        examples:
+            pdfriend split in.pdf 5 -o parts
+                splits in.pdf into one part with pages 1-4 and another with 5-end and puts them in a directory named parts
+            pdfriend split input.pdf 4,7
+                splits input.pdf into 3 parts, one has pages 1-3, another 4-6 and another 7-end and puts them in a directory named pdfriend_output
+            pdfriend split thing.pdf 8-11
+                splits thing.pdf into 4 parts, one has pages 1-7, another has page 8, the other page 9, the other page 10, and the other pages 11-end and puts them in a directory named pdfriend_output
+            pdfriend split infile.pdf all -o pages
+                splits infile.pdf into individual pages and puts them in a directory named pages
     examples:
         pdfriend merge pdf1.pdf img.png pdf2.pdf -o merged.pdf
             merges all of those into merged.pdf, preserving the quality of img.png
@@ -63,6 +82,15 @@ merges the given files into one pdf. It can handle multiple pdfs, as well conver
                 removes pages 3 through 7 (INCLUDING 7) and saves to out.pdf
             pdfriend remove input.pdf 13,2,4-7,1 -i
                 removes pages 1,2,4,5,6,7,13 from input.pdf (modifies the file)
+    """,
+    "weave": """pdfriend weave [filename_0] [filename_1] [-o|--outfile?=pdfriend_output.pdf]
+        combines two PDFs such that the first fills the odd pages and the second the even pages of the output.
+
+        examples:
+            pdfriend weave inf0.pdf inf1.pdf
+                weaves the two PDFs and saves the output to pdfriend_output.pdf
+            pdfriend weave k.pdf l.pdf -o weaved.pdf
+                weaves the two PDFs and saves the output to weaved.pdf
     """,
 }
 

@@ -6,3 +6,5 @@ from pdfriend.commands.remove import remove
 from pdfriend.commands.swap import swap
 from pdfriend.commands.edit import edit
 from pdfriend.commands.clear import clear
+from pdfriend.commands.weave import weave
+from pdfriend.commands.split import split

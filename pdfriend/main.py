@@ -77,6 +77,18 @@ def main():
             args.outfile = args.commands[1]
 
         commands.remove(args.commands[1], args.commands[2], args.outfile)
+    elif command == "weave":
+        if len(args.commands) < 3:
+            print("You need to specify two files to be weaved together")
+            return
+
+        commands.weave(args.commands[1], args.commands[2], args.outfile)
+    elif command == "split":
+        if len(args.commands) < 2:
+            print("You need to specify a file and the pages on which it will be split")
+            return
+
+        commands.split(args.commands[1], args.commands[2], args.outfile)
     else:
         print(f"command \"{command}\" not recognized")
         print("use pdfriend help for a list of the available commands")
