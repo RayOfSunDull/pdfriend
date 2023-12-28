@@ -30,12 +30,7 @@ def main():
         if command == "version" or args.version:
             print(commands.version())
         elif command == "help" or args.help:
-            command_to_display = None
-            try:
-                command_to_display = cmd_parser.next_str()
-            except Exception:
-                pass
-
+            command_to_display = cmd_parser.next_str_or(None)
             commands.help(command_to_display)
         elif command == "merge":
             if len(cmd_parser.args) < 2:
