@@ -1,8 +1,10 @@
 import argparse
+from pdfriend.classes.config import Config
 from pdfriend.classes.platforms import Platform
 import pdfriend.classes.cmdparsers as cmdparsers
 import pdfriend.classes.exceptions as exceptions
 import pdfriend.commands as commands
+import pdfriend.utils as utils
 
 
 def main():
@@ -10,6 +12,7 @@ def main():
 
     parser.add_argument("-h", "--help", action="store_true")
     parser.add_argument("-v", "--version", action="store_true")
+    parser.add_argument("-d", "--debug", action="store_true")
 
     parser.add_argument("commands", type=str, nargs="*")
 
@@ -20,6 +23,7 @@ def main():
     args = parser.parse_args()
 
     Platform.Init()
+    Config.Debug = args.debug
 
     command = ""
     if len(args.commands) > 0:
@@ -98,4 +102,4 @@ def main():
     except exceptions.ExpectedError as e:
         print(e)
     except Exception as e:
-        print(f"unexpected error occured:\n{e}")
+        utils.print_unexpected_exception(e, Config.Debug)

@@ -1,6 +1,6 @@
 
 intro = """pdfriend: a command line utility for easily modifying PDF files
-    usage: pdfriend [command] [arguments?] (note that options in [] are required and options in [?] are not)
+    usage: pdfriend [command] [arguments?] [-d|--debug?] (note that options in [] are required and options in [?] are not). Use -d or --debug for more detailed error messages.
     the following commands are available:
     """
 

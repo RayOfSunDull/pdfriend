@@ -3,6 +3,8 @@ import pdfriend.classes.exceptions as exceptions
 import pdfriend.classes.cmdparsers as cmdparsers
 import pdfriend.classes.info as info
 from pdfriend.classes.platforms import Platform
+from pdfriend.classes.config import Config
+import pdfriend.utils as utils
 import pathlib
 import re
 
@@ -189,5 +191,5 @@ def edit(infile: str):
         except exceptions.ExpectedError as e:
             print(e)
         except Exception as e:
-            print(f"unexpected exception occured:\n{e}")
+            utils.print_unexpected_exception(e, Config.Debug)
 
