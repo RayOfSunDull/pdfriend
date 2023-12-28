@@ -1,5 +1,6 @@
 import pdfriend.classes.wrappers as wrappers
 import pdfriend.classes.exceptions as exceptions
+import pdfriend.classes.cmdparsers as cmdparsers
 import pdfriend.classes.info as info
 from pdfriend.classes.platforms import Platform
 import pathlib
@@ -11,24 +12,13 @@ whitespace_pattern = re.compile(r"\s+")
 def parse_command_string(command_string: str) -> list[str]:
     return re.split(whitespace_pattern, command_string)
 
-def validate_arg_num(command_name: str, expected_nargs: int, given_nargs: int):
-    # I allow passing more arguments than expected and just ignore the extra ones
-    if given_nargs >= expected_nargs:
-        return
-    raise exceptions.EditError(
-        f"{command_name} command takes {expected_nargs} arguments, {given_nargs} given"
-    )
-
 def validate_page_num(pdf: wrappers.PDFWrapper, page_num: int):
     npages = pdf.len()
     if page_num > 0 or page_num <= npages:
         return
-    raise exceptions.EditError(
+    raise exceptions.ExpectedError(
         f"page {page_num} doesn't exist in the PDF (total pages: {npages})"
     )
-
-def raise_arg_num_error(command_name: str, nargs: int):
-    raise exceptions
 
 command_info = {
     "help": info.CommandInfo("help", "h", """[command?]
@@ -89,100 +79,79 @@ command_info = {
 
 command_info_by_shorts = {cmd.short: cmd for name, cmd in command_info.items()}
 
+def print_help(subcommand: str | None = None):
+    if subcommand is None:
+         print("pdfriend edit shell for quick changes. Commands:")
+         for command, info in command_info.items():
+             print(f"{command} (short: {info.short})")
+
+         print("use h [command] to learn more about a specific command")
+         return
+
+    sub_info = None
+    if subcommand in command_info_by_shorts:
+        sub_info = command_info_by_shorts[subcommand]
+    elif subcommand in command_info:
+        sub_info = command_info[subcommand]
+    else:
+        raise exceptions.ExpectedError(f"command \"{subcommand}\" does not exist")
+
+    print(f"{sub_info.name}|{sub_info.short} {sub_info.descr}")
+
+
 
 def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
     no_command_msg = "No command specified! Type h or help for a list of the available commands"
     if len(args) == 0:
-        raise exceptions.EditError(no_command_msg)
+        raise exceptions.ExpectedError(no_command_msg)
 
-    nargs = len(args) - 1 # arg[0] is the command itself
     command = args[0]
     if command == "":
-        raise exceptions.EditError(no_command_msg)
+        raise exceptions.ExpectedError(no_command_msg)
 
-    short = ""
+    short = ""; long = ""
     if command in command_info_by_shorts:
         short = command
+        long = command_info_by_shorts[command].name
     elif command in command_info:
+        long = command
         short = command_info[command].short
     else:
-        raise exceptions.EditError(f"command \"{command}\" does not exist")
+        raise exceptions.ExpectedError(f"command \"{command}\" does not exist")
+
+    cmd_parser = cmdparsers.CmdParser(long, args[1:])
 
     if short == "h":
-        if len(args) == 1:
-             print("pdfriend edit shell for quick changes. Commands:")
-             for command, info in command_info.items():
-                 print(f"{command} (short: {info.short})")
+        subcommand = cmd_parser.next_str_or(None)
+        print_help(subcommand)
 
-             print("use h [command] to learn more about a specific command")
-        else:
-            sub = args[1]
-            sub_info = None
-            if sub in command_info_by_shorts:
-                sub_info = command_info_by_shorts[sub]
-            elif sub in command_info:
-                sub_info = command_info[sub]
-            else:
-                raise exceptions.EditError(f"command \"{sub}\" does not exist")
-
-            print(f"{sub_info.name}|{sub_info.short} {sub_info.descr}")
-
+        # this is to prevent rewriting the file and appending
+        # the command to the command stack
         raise exceptions.EditContinue()
     if short == "e":
         raise exceptions.EditExit()
     if short == "r":
-        validate_arg_num(command, 2, nargs)
-        pages = []
-        try:
-            pages = pdf.slice(args[1])
-        except Exception as e:
-            raise e
-            raise exceptions.EditError(f"\"{args[1]}\" is not a valid PDF slice")
-
-        angle = 0
-        try:
-            angle = float(args[2])
-        except Exception:
-            raise exceptions.EditError(f"angle \"{args[2]}\" must be a number")
+        pages = cmd_parser.next_typed("PDF slice", lambda s: pdf.slice(s))
+        angle = cmd_parser.next_float()
 
         for page in pages:
             validate_page_num(pdf, page)
             pdf.rotate_page(page, angle)
     if short == "d":
-        validate_arg_num(command, 1, nargs)
-        pages = []
-        try:
-            pages = pdf.slice(args[1])
-        except Exception:
-            raise exceptions.EditError(f"\"{args[1]}\" is not a valid PDF slice")
+        pages = cmd_parser.next_typed("PDF slice", lambda s: pdf.slice(s))
 
         for page in pages:
             pdf.pop_page(page)
     if short == "s":
-        validate_arg_num(command, 2, nargs)
-        page_0 = 0
-        try:
-            page_0 = int(args[1])
-        except Exception:
-            raise exception.EditError(f"\"{args[1]}\" is not a valid page number")
+        page_0 = cmd_parser.next_int()
         validate_page_num(pdf, page_0)
-
-        page_1 = 0
-        try:
-            page_1 = int(args[2])
-        except Exception:
-            raise exception.EditError(f"\"{args[2]}\" is not a valid page number")
+        page_1 = cmd_parser.next_int()
         validate_page_num(pdf, page_1)
 
         pdf.swap_pages(page_0, page_1)
     if short == "u":
-        num_of_commands = 1
-        if nargs >= 1:
-            undo_str = args[1]
-            if undo_str == "all":
-                num_of_commands = "all"
-            else:
-                num_of_commands = int(undo_str)
+        # arg will be converted to int, unless it's "all". Defaults to 1
+        num_of_commands = cmd_parser.next_int_or(1, unless = ["all"])
 
         raise exceptions.EditUndo(num_of_commands)
 
@@ -217,7 +186,7 @@ def edit(infile: str):
                 run_edit_command(pdf, args)
 
             pdf.write(infile)
-        except exceptions.EditError as e:
+        except exceptions.ExpectedError as e:
             print(e)
         except Exception as e:
             print(f"unexpected exception occured:\n{e}")
