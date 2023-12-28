@@ -50,8 +50,8 @@ def main():
             commands.invert(infile, args.outfile)
         elif command == "swap":
             infile = cmd_parser.next_str()
-            file_0 = cmd_parser.next_str()
-            file_1 = cmd_parser.next_str()
+            page_0 = cmd_parser.next_int()
+            page_1 = cmd_parser.next_int()
 
             if args.inplace:
                 args.outfile = infile
