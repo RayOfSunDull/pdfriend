@@ -82,6 +82,20 @@ def main():
             slice = cmd_parser.next_str()
 
             commands.split(infile, slice, args.outfile)
+        elif command == "encrypt":
+            infile = cmd_parser.next_str()
+
+            if args.inplace:
+                args.outfile = infile
+
+            commands.encrypt(infile, args.outfile)
+        elif command == "decrypt":
+            infile = cmd_parser.next_str()
+
+            if args.inplace:
+                args.outfile = infile
+
+            commands.decrypt(infile, args.outfile)
         else:
             print(f"command \"{command}\" not recognized")
             print("use pdfriend help for a list of the available commands")

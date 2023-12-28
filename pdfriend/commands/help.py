@@ -92,6 +92,28 @@ help_blurbs = {
             pdfriend weave k.pdf l.pdf -o weaved.pdf
                 weaves the two PDFs and saves the output to weaved.pdf
     """,
+    "encrypt": """pdfriend encrypt [filename] [-o|--outfile?=pdfriend_output.pdf] [-i|--inplace?]
+        creates an encrypted PDF file using a provided password. Adding -i or --inplace will make it so that the file itself is encrypted.
+
+        examples:
+            pdfriend encrypt not-sus.pdf -i
+                encrypts not-sus.pdf in-place. Make sure you remember the password, as it will be overwritten!
+            pdfriend encrypt balance.pdf -o balance-encrypted.pdf
+                encrypts balance.pdf and saves to balance-encrypted.pdf.
+            pdfriend encrypt acct.pdf
+                encrypts acct.pdf and saves to pdfriend_output.pdf.
+    """,
+    "decrypt": """pdfriend decrypt [filename] [-o|--outfile?=pdfriend_output.pdf] [-i|--inplace?]
+        decrypts an encrypted PDF file using a provided password. Adding -i or --inplace will make it so that the file itself is decrypted. If the file is not encrypted, it will just be copied.
+
+        examples:
+            pdfriend decrypt not-sus.pdf -i
+                decrypts not-sus.pdf in-place.
+            pdfriend decrypt balance.pdf -o balance-decrypted.pdf
+                decrypts balance.pdf and saves to balance-decrypted.pdf.
+            pdfriend decrypt acct.pdf
+                decrypts acct.pdf and saves to pdfriend_output.pdf.
+    """,
 }
 
 

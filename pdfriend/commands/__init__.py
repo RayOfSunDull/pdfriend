@@ -8,3 +8,5 @@ from pdfriend.commands.edit import edit
 from pdfriend.commands.clear import clear
 from pdfriend.commands.weave import weave
 from pdfriend.commands.split import split
+from pdfriend.commands.encrypt import encrypt
+from pdfriend.commands.decrypt import decrypt
