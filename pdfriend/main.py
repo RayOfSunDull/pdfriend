@@ -1,5 +1,6 @@
 import argparse
 from pdfriend.classes.platforms import Platform
+import pdfriend.classes.cmdparsers as cmdparsers
 import pdfriend.commands as commands
 
 
@@ -23,72 +24,66 @@ def main():
     if len(args.commands) > 0:
         command = args.commands[0]
 
-    if command == "version" or args.version:
-        print(commands.version())
-    elif command == "help" or args.help:
-        command_to_display = None
-        if len(args.commands) >= 2:
-            command_to_display = args.commands[1]
+    cmd_parser = cmdparsers.CmdParser(command, args.commands[1:])
 
-        commands.help(command_to_display)
-    elif command == "merge":
-        if len(args.commands) < 2:
-            print("You need to specify at least one file or pattern to be merged")
-            return
+    try:
+        if command == "version" or args.version:
+            print(commands.version())
+        elif command == "help" or args.help:
+            command_to_display = None
+            try:
+                command_to_display = cmd_parser.next_str()
+            except Exception:
+                pass
 
-        commands.merge(args.commands[1:], args.outfile, args.quality)
-    elif command == "edit":
-        if len(args.commands) < 2:
-            print("You need to specify a file for editing")
-            return
+            commands.help(command_to_display)
+        elif command == "merge":
+            if len(cmd_parser.args) < 2:
+                print("You need to specify at least one file or pattern to be merged")
+                return
 
-        commands.edit(args.commands[1])
-    elif command == "invert":
-        if len(args.commands) < 2:
-            print("You need to specify a file to be inverted")
-            return
+            commands.merge(cmd_parser.args, args.outfile, args.quality)
+        elif command == "edit":
+            infile = cmd_parser.next_str()
+            commands.edit(infile)
+        elif command == "invert":
+            infile = cmd_parser.next_str()
 
-        if args.inplace:
-            args.outfile = args.commands[1]
+            if args.inplace:
+                args.outfile = infile
 
-        commands.invert(args.commands[1], args.outfile)
-    elif command == "swap":
-        if len(args.commands) < 4:
-            print("You need to specify a file and 2 pages to be swapped")
-            return
+            commands.invert(infile, args.outfile)
+        elif command == "swap":
+            infile = cmd_parser.next_str()
+            file_0 = cmd_parser.next_str()
+            file_1 = cmd_parser.next_str()
 
-        if args.inplace:
-            args.outfile = args.commands[1]
+            if args.inplace:
+                args.outfile = infile
 
-        commands.swap(
-            args.commands[1],
-            int(args.commands[2]),
-            int(args.commands[3]),
-            args.outfile
-        )
-    elif command == "clear":
-        commands.clear()
-    elif command == "remove":
-        if len(args.commands) < 3:
-            print("You need to specify a file and the pages to be deleted")
-            return
+            commands.swap(infile, page_0, page_1, args.outfile)
+        elif command == "clear":
+            commands.clear()
+        elif command == "remove":
+            infile = cmd_parser.next_str()
+            slice = cmd_parser.next_str()
 
-        if args.inplace:
-            args.outfile = args.commands[1]
+            if args.inplace:
+                args.outfile = infile
 
-        commands.remove(args.commands[1], args.commands[2], args.outfile)
-    elif command == "weave":
-        if len(args.commands) < 3:
-            print("You need to specify two files to be weaved together")
-            return
+            commands.remove(infile, slice, args.outfile)
+        elif command == "weave":
+            infile_0 = cmd_parser.next_str()
+            infile_1 = cmd_parser.next_str()
 
-        commands.weave(args.commands[1], args.commands[2], args.outfile)
-    elif command == "split":
-        if len(args.commands) < 2:
-            print("You need to specify a file and the pages on which it will be split")
-            return
+            commands.weave(infile_0, infile_1, args.outfile)
+        elif command == "split":
+            infile = cmd_parser.next_str()
+            slice = cmd_parser.next_str()
 
-        commands.split(args.commands[1], args.commands[2], args.outfile)
-    else:
-        print(f"command \"{command}\" not recognized")
-        print("use pdfriend help for a list of the available commands")
+            commands.split(infile, slice, args.outfile)
+        else:
+            print(f"command \"{command}\" not recognized")
+            print("use pdfriend help for a list of the available commands")
+    except Exception as e:
+        print(e)
