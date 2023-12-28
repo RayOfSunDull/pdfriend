@@ -12,3 +12,5 @@ class EditUndo(Exception):
         self.num = num
         super().__init__()
 
+class ExpectedError(Exception):
+    pass

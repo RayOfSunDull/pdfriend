@@ -1,3 +1,4 @@
+import pdfriend.classes.exceptions as exceptions
 
 class CmdParser:
     def __init__(self, cmd_name: str, args: list[str]):
@@ -7,7 +8,7 @@ class CmdParser:
 
     def next_str(self):
         if len(self.args) == 0:
-            raise ValueError(
+            raise exceptions.ExpectedError(
                 f"argument {self.current_arg} for command \"{self.cmd_name}\" not provided"
             )
 
@@ -25,7 +26,7 @@ class CmdParser:
 
     def next_typed(self, type_name: str, type_converter):
         if len(self.args) == 0:
-            raise ValueError(
+            raise exceptions.ExpectedError(
                 f"argument {self.current_arg} for command \"{self.cmd_name}\" not provided"
             )
 
@@ -38,7 +39,7 @@ class CmdParser:
             self.current_arg += 1
             return result
         except Exception:
-            raise ValueError(
+            raise exceptions.ExpectedError(
                 f"argument {self.current_arg} for command \"{self.cmd_name}\" (value: {head}) could not be converted to type \"{type_name}\""
             )
 

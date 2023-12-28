@@ -1,6 +1,7 @@
 import argparse
 from pdfriend.classes.platforms import Platform
 import pdfriend.classes.cmdparsers as cmdparsers
+import pdfriend.classes.exceptions as exceptions
 import pdfriend.commands as commands
 
 
@@ -9,11 +10,11 @@ def main():
 
     parser.add_argument("-h", "--help", action="store_true")
     parser.add_argument("-v", "--version", action="store_true")
-    parser.add_argument("-i", "--inplace", action="store_true")
 
     parser.add_argument("commands", type=str, nargs="*")
 
     parser.add_argument("-o", "--outfile", type=str, default="pdfriend_output")
+    parser.add_argument("-i", "--inplace", action="store_true")
     parser.add_argument("-q", "--quality", type=int, default=100)
 
     args = parser.parse_args()
@@ -33,7 +34,7 @@ def main():
             command_to_display = cmd_parser.next_str_or(None)
             commands.help(command_to_display)
         elif command == "merge":
-            if len(cmd_parser.args) < 2:
+            if len(cmd_parser.args) == 0:
                 print("You need to specify at least one file or pattern to be merged")
                 return
 
@@ -94,5 +95,7 @@ def main():
         else:
             print(f"command \"{command}\" not recognized")
             print("use pdfriend help for a list of the available commands")
-    except Exception as e:
+    except exceptions.ExpectedError as e:
         print(e)
+    except Exception as e:
+        print(f"unexpected error occured:\n{e}")
