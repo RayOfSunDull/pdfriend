@@ -15,5 +15,5 @@ def encrypt(infile: str, outfile: str):
 
     writer = pdf.to_writer()
     writer.encrypt(password)
-    writer.write(outfile)
+    writer.write(pathlib.Path(outfile).with_suffix(".pdf"))
 
