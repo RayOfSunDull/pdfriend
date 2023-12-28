@@ -29,7 +29,7 @@ class PDFWrapper:
 
     def slice(self, slice_str: str) -> list[int]:
         if slice_str == "all":
-            return list(range(1, self.final_page() + 1))
+            return list(range(1, self.final_page()))
 
         result = []
         for subslice in slice_str.split(","):
