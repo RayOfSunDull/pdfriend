@@ -8,8 +8,8 @@ def split(infile: str, slice_str: str, outdir: str):
     split_indices = pdf.slice(slice_str)
     if 1 not in split_indices:
         split_indices = [1] + split_indices
-    if pdf.final_page() not in split_indices:
-        split_indices.append(pdf.final_page())
+    if pdf.len() not in split_indices:
+        split_indices.append(pdf.len())
 
     outdir_path = pathlib.Path(outdir)
     platforms.ensuredir(outdir_path)

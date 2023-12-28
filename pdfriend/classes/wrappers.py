@@ -6,8 +6,12 @@ from PIL import Image
 from pdfriend.classes.platforms import Platform
 
 class PDFWrapper:
-    def __init__(self, pages: list[pypdf.PageObject] = None):
-        self.pages = [] if pages is None else pages
+    def __init__(self,
+        pages: list[pypdf.PageObject] = None,
+        metadata: pypdf.DocumentInformation = None
+    ):
+        self.pages = pages or []
+        self.metadata = metadata
 
     def __getitem__(self, num: int) -> pypdf.PageObject:
         return self.pages[num - 1]
@@ -19,23 +23,22 @@ class PDFWrapper:
     def Read(cls, filename: str):
         pdf = pypdf.PdfReader(filename)
 
-        return PDFWrapper(pages=list(pdf.pages))
+        return PDFWrapper(
+            pages = list(pdf.pages), metadata = pdf.metadata
+        )
 
     def len(self):
         return len(self.pages)
 
-    def final_page(self):
-        return len(self.pages) + 1
-
     def slice(self, slice_str: str) -> list[int]:
         if slice_str == "all":
-            return list(range(1, self.final_page()))
+            return list(range(1, self.len()))
 
         result = []
         for subslice in slice_str.split(","):
             if "-" not in subslice:
                 page_num = int(subslice)
-                if page_num < 1 or page_num > self.final_page():
+                if page_num < 1 or page_num > self.len():
                     continue
 
                 result.append(page_num)
@@ -46,15 +49,22 @@ class PDFWrapper:
 
             # such that n- means n-end and -n means 1-n
             first = 1 if first == "" else int(first)
-            last = self.final_page() if last == "" else int(last)
+            last = self.len() if last == "" else int(last)
 
             # making sure the subrange is within bounds
             lower = max(min(first, last), 1)
-            upper = min(max(first, last), self.final_page())
+            upper = min(max(first, last), self.len())
 
             result.extend(list(range(lower, upper + 1)))
 
         return sorted(list(set(result)))
+
+    def raise_if_out_of_range(self, page_num: int):
+        if page_num >= 1 and page_num <= self.len():
+            return
+        raise exceptions.ExpectedError(
+            f"page {page_num} doesn't exist in the PDF (total pages: {self.len()})"
+        )
 
     def rotate_page(self, page_num: int, angle: float) -> Self:
         int_angle = int(angle)

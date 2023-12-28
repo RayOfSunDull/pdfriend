@@ -14,14 +14,6 @@ whitespace_pattern = re.compile(r"\s+")
 def parse_command_string(command_string: str) -> list[str]:
     return re.split(whitespace_pattern, command_string)
 
-def validate_page_num(pdf: wrappers.PDFWrapper, page_num: int):
-    npages = pdf.len()
-    if page_num > 0 or page_num <= npages:
-        return
-    raise exceptions.ExpectedError(
-        f"page {page_num} doesn't exist in the PDF (total pages: {npages})"
-    )
-
 command_info = {
     "help": info.CommandInfo("help", "h", """[command?]
     display help message. If given a command, it will only display the help message for that command.
@@ -136,8 +128,14 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
         pages = cmd_parser.next_typed("PDF slice", lambda s: pdf.slice(s))
         angle = cmd_parser.next_float()
 
+        if len(pages) == 0:
+            return
+        # the slice is sorted, so if any pages are out of range, it'll
+        # either be the first or the last one, probably the last
+        pdf.raise_if_out_of_range(pages[-1])
+        pdf.raise_if_out_of_range(pages[0])
+
         for page in pages:
-            validate_page_num(pdf, page)
             pdf.rotate_page(page, angle)
     if short == "d":
         pages = cmd_parser.next_typed("PDF slice", lambda s: pdf.slice(s))
@@ -146,9 +144,9 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
             pdf.pop_page(page)
     if short == "s":
         page_0 = cmd_parser.next_int()
-        validate_page_num(pdf, page_0)
+        pdf.raise_if_out_of_range(page_0)
         page_1 = cmd_parser.next_int()
-        validate_page_num(pdf, page_1)
+        pdf.raise_if_out_of_range(page_1)
 
         pdf.swap_pages(page_0, page_1)
     if short == "u":
