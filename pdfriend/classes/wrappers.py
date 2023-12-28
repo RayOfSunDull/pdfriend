@@ -102,10 +102,15 @@ class PDFWrapper:
 
         return result
 
-    def write(self, filename: str):
+    def to_writer(self):
         writer = pypdf.PdfWriter()
         for page in self.pages:
             writer.add_page(page)
+
+        return writer
+
+    def write(self, filename: str):
+        writer = self.to_writer()
 
         writer.write(
             pathlib.Path(filename).with_suffix(".pdf")
