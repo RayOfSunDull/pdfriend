@@ -127,9 +127,9 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
 
         # this is to prevent rewriting the file and appending
         # the command to the command stack
-        raise exceptions.EditContinue()
+        raise exceptions.ShellContinue()
     if short == "e":
-        raise exceptions.EditExit()
+        raise exceptions.ShellExit()
     if short == "r":
         pages = cmd_parser.next_typed("PDF slice", lambda s: pdf.slice(s))
         angle = cmd_parser.next_float()
@@ -153,7 +153,7 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
         # arg will be converted to int, unless it's "all". Defaults to 1
         num_of_commands = cmd_parser.next_int_or(1, unless = ["all"])
 
-        raise exceptions.EditUndo(num_of_commands)
+        raise exceptions.ShellUndo(num_of_commands)
 
 
 def edit(infile: str):
@@ -171,11 +171,11 @@ def edit(infile: str):
             command_stack.append(args)
 
             pdf.write(infile) # overwrites the file!
-        except (KeyboardInterrupt, exceptions.EditExit):
+        except (KeyboardInterrupt, exceptions.ShellExit):
             return
-        except exceptions.EditContinue:
+        except exceptions.ShellContinue:
             continue
-        except exceptions.EditUndo as undo:
+        except exceptions.ShellUndo as undo:
             if undo.num == "all":
                 command_stack = []
             else:

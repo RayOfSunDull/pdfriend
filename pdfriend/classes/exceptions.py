@@ -1,13 +1,10 @@
-class EditError(Exception):
+class ShellExit(Exception):
     pass
 
-class EditExit(Exception):
+class ShellContinue(Exception):
     pass
 
-class EditContinue(Exception):
-    pass
-
-class EditUndo(Exception):
+class ShellUndo(Exception):
     def __init__(self, num: str | int):
         self.num = num
         super().__init__()
