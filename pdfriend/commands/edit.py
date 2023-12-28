@@ -6,7 +6,7 @@ import pathlib
 import re
 
 
-whitespace_pattern = re.compile("\s+")
+whitespace_pattern = re.compile(r"\s+")
 
 def parse_command_string(command_string: str) -> list[str]:
     return re.split(whitespace_pattern, command_string)
