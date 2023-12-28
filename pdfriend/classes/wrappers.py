@@ -34,7 +34,11 @@ class PDFWrapper:
         result = []
         for subslice in slice_str.split(","):
             if "-" not in subslice:
-                result.append(int(subslice))
+                page_num = int(subslice)
+                if page_num < 1 or page_num > self.final_page():
+                    continue
+
+                result.append(page_num)
                 continue
 
             split_subslice = subslice.split("-")
