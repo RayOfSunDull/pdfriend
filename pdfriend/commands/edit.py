@@ -58,6 +58,9 @@ command_info = {
     "swap": info.CommandInfo("swap", "s", """[page_0] [page_1]
     swaps page_0 and page_1.
     """),
+    "move": info.CommandInfo("move", "m", """[source] [destination]
+    move source to BEFORE destination, taking its place.
+    """),
     "undo": info.CommandInfo("undo", "u", """[number?]
     undo the previous [number] commands.
 
@@ -149,6 +152,14 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
         pdf.raise_if_out_of_range(page_1)
 
         pdf.swap_pages(page_0, page_1)
+    if short == "m":
+        source = cmd_parser.next_int()
+        pdf.raise_if_out_of_range(source)
+        destination = cmd_parser.next_int()
+        pdf.raise_if_out_of_range(destination)
+
+        page = pdf.pages.pop(source - 1)
+        pdf.pages.insert(destination - 1, page)
     if short == "u":
         # arg will be converted to int, unless it's "all". Defaults to 1
         num_of_commands = cmd_parser.next_int_or(1, unless = ["all"])
