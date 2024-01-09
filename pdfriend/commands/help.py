@@ -114,7 +114,7 @@ help_blurbs = {
             pdfriend decrypt acct.pdf
                 decrypts acct.pdf and saves to pdfriend_output.pdf.
     """,
-    "metadata": """pdfriend metadata [filename] [--get key?] [--set key_val_pairs?]
+    "metadata": """pdfriend metadata [filename] [--get key?] [--set key_val_pairs?] [--pop keys?]
         manages PDF metadata. Using no extra flags, it will print the key-value pairs. You can use --get to print the value of a specific key and --set to set values for keys, or --pop to delete them.
 
         examples:
