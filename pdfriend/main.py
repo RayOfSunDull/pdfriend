@@ -10,15 +10,19 @@ import pdfriend.utils as utils
 def main():
     parser = argparse.ArgumentParser(add_help=False)
 
+    parser.add_argument("commands", type=str, nargs="*")
+
     parser.add_argument("-h", "--help", action="store_true")
     parser.add_argument("-v", "--version", action="store_true")
     parser.add_argument("-d", "--debug", action="store_true")
 
-    parser.add_argument("commands", type=str, nargs="*")
-
     parser.add_argument("-o", "--outfile", type=str, default="pdfriend_output")
     parser.add_argument("-i", "--inplace", action="store_true")
     parser.add_argument("-q", "--quality", type=int, default=100)
+
+    parser.add_argument("--get", type=str, default=None)
+    parser.add_argument("--set", type=str, default=None)
+    parser.add_argument("--pop", type=str, default=None)
 
     args = parser.parse_args()
 
@@ -96,6 +100,10 @@ def main():
                 args.outfile = infile
 
             commands.decrypt(infile, args.outfile)
+        elif command == "metadata":
+            infile = cmd_parser.next_str()
+
+            commands.metadata(infile, args.get, args.set, args.pop)
         else:
             print(f"command \"{command}\" not recognized")
             print("use pdfriend help for a list of the available commands")

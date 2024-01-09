@@ -114,6 +114,25 @@ help_blurbs = {
             pdfriend decrypt acct.pdf
                 decrypts acct.pdf and saves to pdfriend_output.pdf.
     """,
+    "metadata": """pdfriend metadata [filename] [--get key?] [--set key_val_pairs?]
+        manages PDF metadata. Using no extra flags, it will print the key-value pairs. You can use --get to print the value of a specific key and --set to set values for keys, or --pop to delete them.
+
+        examples:
+            pdfriend metadata some.pdf
+                prints the metadata of some.pdf.
+            pdfriend metadata thing.pdf --get /Author
+                prints the name of the author of the PDF, if that field has been set.
+            pdfriend metadata stolen.pdf --set /Author=me
+                sets the author of stolen.pdf to "me". BEWARE: This will overwrite the PDF, unlike most of the other pdfriend commands.
+            pdfriend metadata cnp.pdf --set  "/Title=Crime And Punishment"
+                sets the title to that. Note that you need the quotes here, else your shell will interpret the words as different arguments.
+            pdfriend metadata phys1.pdf --set "/Title=University Physics with Modern Physics,/Author=H. Young and R. Freedman"
+                sets the author of phys1.pdf to "H. Young and R. Freedman" and its title to you-know-what.
+            pdfriend metadata embarassing_fanfic.pdf --pop /Author
+                removes (!) the PDF's author field.
+            pdfriend metadata mystery.pdf --pop /Author,/Producer
+                removes the PDF's author and producer fields.
+    """
 }
 
 

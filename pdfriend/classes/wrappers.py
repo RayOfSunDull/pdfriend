@@ -11,7 +11,7 @@ class PDFWrapper:
         metadata: pypdf.DocumentInformation = None
     ):
         self.pages = pages or []
-        self.metadata = metadata
+        self.metadata = dict(metadata)
 
     def __getitem__(self, num: int) -> pypdf.PageObject:
         return self.pages[num - 1]
@@ -123,8 +123,10 @@ class PDFWrapper:
 
         return writer
 
-    def write(self, filename: str):
+    def write(self, filename: str, keep_metadata = True):
         writer = self.to_writer()
+        if keep_metadata:
+            writer.add_metadata(self.metadata)
 
         writer.write(
             pathlib.Path(filename).with_suffix(".pdf")
