@@ -162,7 +162,10 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
         pdf.pages.insert(destination - 1, page)
     if short == "u":
         # arg will be converted to int, unless it's "all". Defaults to 1
-        num_of_commands = cmd_parser.next_int_or(1, unless = ["all"])
+        num_of_commands = cmd_parser.next_typed_or(
+            "int or \"all\"", lambda s: s if s == "all" else int(s),
+            1 # default value
+        )
 
         raise exceptions.ShellUndo(num_of_commands)
 
