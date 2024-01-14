@@ -8,6 +8,7 @@
 - delete PDF pages
 - change the order of pages in a PDF
 - encrypt and decrypt PDFs
+- see and edit PDF metadata
 
 ## Installation
 The recommended way to install `pdfriend` is through [pipx](https://github.com/pypa/pipx). Simply run:
