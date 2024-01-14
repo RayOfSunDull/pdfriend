@@ -11,7 +11,9 @@ class PDFWrapper:
         metadata: pypdf.DocumentInformation = None
     ):
         self.pages = pages or []
-        self.metadata = dict(metadata)
+        self.metadata = metadata
+        if metadata is not None:
+            self.metadata = dict(metadata)
 
     def __getitem__(self, num: int) -> pypdf.PageObject:
         return self.pages[num - 1]
