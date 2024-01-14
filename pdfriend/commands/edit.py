@@ -60,6 +60,31 @@ command_info = {
     """),
     "move": info.CommandInfo("move", "m", """[source] [destination]
     move source to BEFORE destination, taking its place.
+
+    examples:
+        m 3 17
+            moves page 3 to page 17, pushing back the pages from 17 onward
+        m 83 1
+            moves page 83 to the beginning of the document
+    """),
+    "push": info.CommandInfo("push", "p", """[pages] [offset]
+    pushes the specified pages by offset pages (offset can be negative).
+
+    examples:
+        p 3 7
+            moves page 3 to 7 pages down, i.e. to page 10.
+        p 4,9,2 1
+            moves pages 2,4,9 by 1 page.
+        p 5-8 -3
+            moves pages 5,6,7,8 to 3 pages BACK.
+        p 5,6,90-94 5
+            moves pages 5,6,90,91,92,93,94 to be 5 pages down.
+        p -5 4
+            moves pages 1,2,3,4,5 to be 4 pages down.
+        p 67- -7
+            move pages from 67 to the end of the PDF to be 7 pages back.
+        p 70- 5
+            FAILS. 70- includes the end of the PDF, and you can't move that further down.
     """),
     "undo": info.CommandInfo("undo", "u", """[number?]
     undo the previous [number] commands.
@@ -128,8 +153,8 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
     if short == "e":
         raise exceptions.ShellExit()
     if short == "r":
-        pages = cmd_parser.next_typed("PDF slice", lambda s: pdf.slice(s))
-        angle = cmd_parser.next_float()
+        pages = cmd_parser.next_typed("PDF slice", lambda s: pdf.slice(s), "pages")
+        angle = cmd_parser.next_float("angle")
 
         if len(pages) == 0:
             return
@@ -146,20 +171,38 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
         for page in pages:
             pdf.pop_page(page)
     if short == "s":
-        page_0 = cmd_parser.next_int()
+        page_0 = cmd_parser.next_int("page_0")
         pdf.raise_if_out_of_range(page_0)
-        page_1 = cmd_parser.next_int()
+        page_1 = cmd_parser.next_int("page_1")
         pdf.raise_if_out_of_range(page_1)
 
         pdf.swap_pages(page_0, page_1)
     if short == "m":
-        source = cmd_parser.next_int()
+        source = cmd_parser.next_int("source")
         pdf.raise_if_out_of_range(source)
-        destination = cmd_parser.next_int()
+        destination = cmd_parser.next_int("destination")
         pdf.raise_if_out_of_range(destination)
 
         page = pdf.pages.pop(source - 1)
         pdf.pages.insert(destination - 1, page)
+    if short == "p":
+        pages = cmd_parser.next_typed("PDF slice", lambda s: pdf.slice(s), "pages")
+        offset = cmd_parser.next_int("offset")
+
+        last_page_before = pages[-1]
+        last_page_after = last_page_before + offset
+
+        if last_page_after > pdf.len(): # only check last page, as the slice is sorted
+            raise exceptions.ExpectedError(
+                f"can't move page {last_page_before} to {last_page_after}, as it's outside the PDF (number of pages: {pdf.len()})"
+            )
+
+        if offset > 0:
+            pages = pages[::-1]
+
+        for page in pages:
+            p = pdf.pages.pop(page - 1)
+            pdf.pages.insert(page + offset - 1, p)
     if short == "u":
         # arg will be converted to int, unless it's "all". Defaults to 1
         num_of_commands = cmd_parser.next_typed_or(
