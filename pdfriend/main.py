@@ -48,19 +48,19 @@ def main():
 
             commands.merge(cmd_parser.args, args.outfile, args.quality)
         elif command == "edit":
-            infile = cmd_parser.next_str()
+            infile = cmd_parser.next_str("filename")
             commands.edit(infile)
         elif command == "invert":
-            infile = cmd_parser.next_str()
+            infile = cmd_parser.next_str("filename")
 
             if args.inplace:
                 args.outfile = infile
 
             commands.invert(infile, args.outfile)
         elif command == "swap":
-            infile = cmd_parser.next_str()
-            page_0 = cmd_parser.next_int()
-            page_1 = cmd_parser.next_int()
+            infile = cmd_parser.next_str("filename")
+            page_0 = cmd_parser.next_int("page_0")
+            page_1 = cmd_parser.next_int("page_1")
 
             if args.inplace:
                 args.outfile = infile
@@ -69,39 +69,39 @@ def main():
         elif command == "clear":
             commands.clear()
         elif command == "remove":
-            infile = cmd_parser.next_str()
-            slice = cmd_parser.next_str()
+            infile = cmd_parser.next_str("filename")
+            slice = cmd_parser.next_str("pages")
 
             if args.inplace:
                 args.outfile = infile
 
             commands.remove(infile, slice, args.outfile)
         elif command == "weave":
-            infile_0 = cmd_parser.next_str()
-            infile_1 = cmd_parser.next_str()
+            infile_0 = cmd_parser.next_str("filename_0")
+            infile_1 = cmd_parser.next_str("filename_1")
 
             commands.weave(infile_0, infile_1, args.outfile)
         elif command == "split":
-            infile = cmd_parser.next_str()
-            slice = cmd_parser.next_str()
+            infile = cmd_parser.next_str("filename")
+            slice = cmd_parser.next_str("pages")
 
             commands.split(infile, slice, args.outfile)
         elif command == "encrypt":
-            infile = cmd_parser.next_str()
+            infile = cmd_parser.next_str("filename")
 
             if args.inplace:
                 args.outfile = infile
 
             commands.encrypt(infile, args.outfile)
         elif command == "decrypt":
-            infile = cmd_parser.next_str()
+            infile = cmd_parser.next_str("filename")
 
             if args.inplace:
                 args.outfile = infile
 
             commands.decrypt(infile, args.outfile)
         elif command == "metadata":
-            infile = cmd_parser.next_str()
+            infile = cmd_parser.next_str("filename")
 
             commands.metadata(infile, args.get, args.set, args.pop)
         else:
