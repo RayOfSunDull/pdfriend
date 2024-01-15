@@ -127,7 +127,7 @@ class PDFWrapper:
 
     def write(self, filename: str, keep_metadata = True):
         writer = self.to_writer()
-        if keep_metadata:
+        if keep_metadata and self.metadata is not None:
             writer.add_metadata(self.metadata)
 
         writer.write(
