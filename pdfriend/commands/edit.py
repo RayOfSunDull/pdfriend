@@ -97,6 +97,15 @@ program_info = info.ProgramInfo(
         u all
             undoes all commands issued this session (reverts document fully)
     """),
+    info.CommandInfo("export", "x", descr = """[filename?=pdfriend_edit.txt]
+    exports all the commands you ran into a text file
+
+        examples:
+            x
+                exports your commands to pdfriend_edit.txt
+            x out.txt
+                exports your commands to out.txt
+    """),
     foreword = "pdfriend edit shell for quick changes. Commands:",
     postword = "use h [command] to learn more about a specific command"
 )
@@ -117,9 +126,9 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
         # this is to prevent rewriting the file and appending
         # the command to the command stack
         raise exceptions.ShellContinue()
-    if short == "e":
+    elif short == "e":
         raise exceptions.ShellExit()
-    if short == "r":
+    elif short == "r":
         pages = cmd_parser.next_typed("PDF slice", lambda s: pdf.slice(s), "pages")
         angle = cmd_parser.next_float("angle")
 
@@ -132,19 +141,19 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
 
         for page in pages:
             pdf.rotate_page(page, angle)
-    if short == "d":
+    elif short == "d":
         pages = cmd_parser.next_typed("PDF slice", lambda s: pdf.slice(s))
 
         for page in pages:
             pdf.pop_page(page)
-    if short == "s":
+    elif short == "s":
         page_0 = cmd_parser.next_int("page_0")
         pdf.raise_if_out_of_range(page_0)
         page_1 = cmd_parser.next_int("page_1")
         pdf.raise_if_out_of_range(page_1)
 
         pdf.swap_pages(page_0, page_1)
-    if short == "m":
+    elif short == "m":
         source = cmd_parser.next_int("source")
         pdf.raise_if_out_of_range(source)
         destination = cmd_parser.next_int("destination")
@@ -152,7 +161,7 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
 
         page = pdf.pages.pop(source - 1)
         pdf.pages.insert(destination - 1, page)
-    if short == "p":
+    elif short == "p":
         pages = cmd_parser.next_typed("PDF slice", lambda s: pdf.slice(s), "pages")
         offset = cmd_parser.next_int("offset")
 
@@ -170,7 +179,7 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
         for page in pages:
             p = pdf.pages.pop(page - 1)
             pdf.pages.insert(page + offset - 1, p)
-    if short == "u":
+    elif short == "u":
         # arg will be converted to int, unless it's "all". Defaults to 1
         num_of_commands = cmd_parser.next_typed_or(
             "int or \"all\"", lambda s: s if s == "all" else int(s),
@@ -178,6 +187,10 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
         )
 
         raise exceptions.ShellUndo(num_of_commands)
+    elif short == "x":
+        filename = cmd_parser.next_str_or("pdfriend_edit.txt")
+
+        raise exceptions.ShellExport(filename)
 
 
 def edit(infile: str):
@@ -210,6 +223,11 @@ def edit(infile: str):
                 run_edit_command(pdf, args)
 
             pdf.write(infile)
+        except exceptions.ShellExport as export:
+            with open(export.filename, "w") as outfile:
+                outfile.write("\n".join([
+                    " ".join(args) for args in command_stack
+                ]))
         except exceptions.ExpectedError as e:
             print(e)
         except Exception as e:

@@ -9,5 +9,10 @@ class ShellUndo(Exception):
         self.num = num
         super().__init__()
 
+class ShellExport(Exception):
+    def __init__(self, filename: str | int):
+        self.filename = filename
+        super().__init__()
+
 class ExpectedError(Exception):
     pass
