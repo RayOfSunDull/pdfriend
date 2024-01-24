@@ -65,7 +65,7 @@ program_info = info.ProgramInfo(
                 inverts the pages of kitty.pdf
     """),
     info.CommandInfo("cache", "c", descr = """ [subcommand]
-        for managing the pdfriend cache.
+        for managing the pdfriend cache. Currently, you can only clear it
 
         examples:
             pdfriend cache clear
@@ -160,7 +160,9 @@ def run_pdfriend(args):
 
             commands.invert(infile, args.outfile)
         elif short == "c":
-            commands.clear()
+            subcommand = cmd_parser.next_str()
+
+            commands.cache(subcommand)
         elif short == "w":
             infile_0 = cmd_parser.next_str("filename_0")
             infile_1 = cmd_parser.next_str("filename_1")
