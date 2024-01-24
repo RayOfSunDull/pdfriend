@@ -14,8 +14,8 @@ whitespace_pattern = re.compile(r"\s+")
 def parse_command_string(command_string: str) -> list[str]:
     return re.split(whitespace_pattern, command_string)
 
-command_info = {
-    "help": info.CommandInfo("help", "h", """[command?]
+program_info = info.ProgramInfo(
+    info.CommandInfo("help", "h", descr = """[command?]
     display help message. If given a command, it will only display the help message for that command.
 
     examples:
@@ -24,10 +24,10 @@ command_info = {
         help exit
             displays the help blurb for the exit command
     """),
-    "exit": info.CommandInfo("exit", "e", """
+    info.CommandInfo("exit", "e", descr = """
     exits the edit mode
     """),
-    "rotate": info.CommandInfo("rotate", "r", """[page_numbers] [angle]
+    info.CommandInfo("rotate", "r", descr = """[page_numbers] [angle]
     rotates page clockwise with the given numbers (starting from 1) by the given angle (in degrees). Can use negative angles to rotate counter-clockwise. DO NOT put extra spaces between the page numbers!
 
     examples:
@@ -42,7 +42,7 @@ command_info = {
         r all -90
             rotates all pages counter-clockwise by 90 degrees
     """),
-    "delete": info.CommandInfo("delete", "d", """[page_numbers]
+    info.CommandInfo("delete", "d", descr = """[page_numbers]
     deletes all specified pages. DO NOT put extra spaces between the page numbers!
 
     examples:
@@ -55,10 +55,10 @@ command_info = {
         d 4,17,3-6
             deletes pages 3,4,5,6 and 17
     """),
-    "swap": info.CommandInfo("swap", "s", """[page_0] [page_1]
+    info.CommandInfo("swap", "s", descr = """[page_0] [page_1]
     swaps page_0 and page_1.
     """),
-    "move": info.CommandInfo("move", "m", """[source] [destination]
+    info.CommandInfo("move", "m", descr = """[source] [destination]
     move source to BEFORE destination, taking its place.
 
     examples:
@@ -67,7 +67,7 @@ command_info = {
         m 83 1
             moves page 83 to the beginning of the document
     """),
-    "push": info.CommandInfo("push", "p", """[pages] [offset]
+    info.CommandInfo("push", "p", descr = """[pages] [offset]
     pushes the specified pages by offset pages (offset can be negative).
 
     examples:
@@ -86,7 +86,7 @@ command_info = {
         p 70- 5
             FAILS. 70- includes the end of the PDF, and you can't move that further down.
     """),
-    "undo": info.CommandInfo("undo", "u", """[number?]
+    info.CommandInfo("undo", "u", descr = """[number?]
     undo the previous [number] commands.
 
     examples:
@@ -97,55 +97,22 @@ command_info = {
         u all
             undoes all commands issued this session (reverts document fully)
     """),
-}
-
-command_info_by_shorts = {cmd.short: cmd for name, cmd in command_info.items()}
-
-def print_help(subcommand: str | None = None):
-    if subcommand is None:
-         print("pdfriend edit shell for quick changes. Commands:")
-         for command, info in command_info.items():
-             print(f"{command} (short: {info.short})")
-
-         print("use h [command] to learn more about a specific command")
-         return
-
-    sub_info = None
-    if subcommand in command_info_by_shorts:
-        sub_info = command_info_by_shorts[subcommand]
-    elif subcommand in command_info:
-        sub_info = command_info[subcommand]
-    else:
-        raise exceptions.ExpectedError(f"command \"{subcommand}\" does not exist")
-
-    print(f"{sub_info.name}|{sub_info.short} {sub_info.descr}")
-
+    foreword = "pdfriend edit shell for quick changes. Commands:",
+    postword = "use h [command] to learn more about a specific command"
+)
 
 
 def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
-    no_command_msg = "No command specified! Type h or help for a list of the available commands"
-    if len(args) == 0:
-        raise exceptions.ExpectedError(no_command_msg)
-
-    command = args[0]
-    if command == "":
-        raise exceptions.ExpectedError(no_command_msg)
-
-    short = ""; long = ""
-    if command in command_info_by_shorts:
-        short = command
-        long = command_info_by_shorts[command].name
-    elif command in command_info:
-        long = command
-        short = command_info[command].short
-    else:
-        raise exceptions.ExpectedError(f"command \"{command}\" does not exist")
-
-    cmd_parser = cmdparsers.CmdParser(long, args[1:])
+    cmd_parser = cmdparsers.CmdParser.FromArgs(
+        program_info,
+        args,
+        no_command_message = "No command specified! Type h or help for a list of the available commands"
+    )
+    short = cmd_parser.short()
 
     if short == "h":
         subcommand = cmd_parser.next_str_or(None)
-        print_help(subcommand)
+        print(program_info.help(subcommand))
 
         # this is to prevent rewriting the file and appending
         # the command to the command stack
