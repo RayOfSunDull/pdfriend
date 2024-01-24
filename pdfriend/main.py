@@ -52,8 +52,16 @@ program_info = info.ProgramInfo(
         pdfriend merge pdf1.pdf folder_name/* img.jpg pdf2.pdf -o apricot.pdf
             merges every file given, including all files in folder_name, into apricot.pdf
     """),
-    info.CommandInfo("edit", "e", descr = """ [filename]
-        edit the selected file in place, using a set of subcommands. After launching the edit shell, you can type h or help to list the subcommands.
+    info.CommandInfo("edit", "e", descr = """ [filename] [-u|--use command_file?] [-U|--use_only command_file?]
+        edit the selected file in place, using a set of subcommands. After launching the edit shell, you can type h or help to list the subcommands. You can import pdfriend edit subcommands from text files using -u or -U. The text files must have the edit subcommands as you would write them on the shell, separated by newlines. Try running some commands in the edit shell and then exporting them using the x command.
+
+        examples:
+            pdfriend edit notes.pdf
+                launches the edit shell on notes.pdf
+            pdfriend edit fried.pdf -u run_this.txt
+                launches the edit shell on fried.pdf and executes the commands in run_this.txt
+            pdfriend edit lettuce.pdf -U conf.txt
+                executes the commands in conf.txt on lettuce.pdf and immediately exits the edit shell
     """),
     info.CommandInfo("invert", "i", descr = """ [filename] [-o|--outfile outfile?=pdfriend_output.pdf] [-i|--inplace?]
         create a PDF file with the pages of the input file, but in inverted order. Adding -i or --inplace will make it so the input file is modified, instead of creating a new one.
@@ -151,7 +159,22 @@ def run_pdfriend(args):
             commands.merge(cmd_parser.args, args.outfile, args.quality)
         elif short == "e":
             infile = cmd_parser.next_str("filename")
-            commands.edit(infile)
+
+            input_commands = None
+            input_file = None
+            exit_immediately = False
+            if args.use is not None:
+                input_file = args.use
+                exit_immediately = False
+            elif args.use_only is not None:
+                input_file = args.use_only
+                exit_immediately = True
+
+            commands.edit(
+                infile,
+                input_file = input_file,
+                exit_immediately = exit_immediately,
+            )
         elif short == "i":
             infile = cmd_parser.next_str("filename")
 
@@ -212,6 +235,8 @@ def main():
     parser.add_argument("-o", "--outfile", type=str, default="pdfriend_output")
     parser.add_argument("-i", "--inplace", action="store_true")
     parser.add_argument("-q", "--quality", type=int, default=100)
+    parser.add_argument("-u", "--use", type=str, default=None)
+    parser.add_argument("-U", "--use_only", type=str, default=None)
 
     parser.add_argument("--get", type=str, default=None)
     parser.add_argument("--set", type=str, default=None)

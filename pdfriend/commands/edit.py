@@ -6,13 +6,7 @@ from pdfriend.classes.platforms import Platform
 from pdfriend.classes.config import Config
 import pdfriend.utils as utils
 import pathlib
-import re
 
-
-whitespace_pattern = re.compile(r"\s+")
-
-def parse_command_string(command_string: str) -> list[str]:
-    return re.split(whitespace_pattern, command_string)
 
 program_info = info.ProgramInfo(
     info.CommandInfo("help", "h", descr = """[command?]
@@ -131,7 +125,7 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
     elif short == "e":
         raise exceptions.ShellExit()
     elif short == "r":
-        pages = cmd_parser.next_pdf_slice()
+        pages = cmd_parser.next_pdf_slice(pdf)
         angle = cmd_parser.next_float("angle")
 
         if len(pages) == 0:
@@ -144,7 +138,7 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
         for page in pages:
             pdf.rotate_page(page, angle)
     elif short == "d":
-        pages = cmd_parser.next_pdf_slice()
+        pages = cmd_parser.next_pdf_slice(pdf)
 
         for page in pages:
             pdf.pop_page(page)
@@ -164,7 +158,7 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
         page = pdf.pages.pop(source - 1)
         pdf.pages.insert(destination - 1, page)
     elif short == "p":
-        pages = cmd_parser.next_pdf_slice()
+        pages = cmd_parser.next_pdf_slice(pdf)
         offset = cmd_parser.next_int("offset")
 
         last_page_before = pages[-1]
@@ -194,18 +188,56 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
 
         raise exceptions.ShellExport(filename)
 
+def export_commands(filename: str, command_stack: list[list[str]]):
+    with open(filename, "w") as outfile:
+        outfile.write("\n".join([
+            " ".join(args) for args in command_stack
+        ]))
 
-def edit(infile: str):
+
+
+def edit(
+    infile: str,
+    input_file: list[list[str]] | None = None,
+    exit_immediately: bool = False
+):
     pdf = wrappers.PDFWrapper.Read(infile)
-    command_stack = []
+    command_stack: list[list[str]] = []
 
     # backup the file, because it will be overwritten
     backup_path = pdf.backup(infile)
     print(f"editing {infile}\nbackup created in {backup_path}")
 
+    if input_file is not None:
+        input_path = pathlib.Path(input_file)
+        if not input_path.is_file():
+            print(f"file \"{input_file}\" does not exist, did not load edit commands")
+        else:
+            input_strings = input_path.read_text().split("\n")
+            input_commands = [
+                utils.parse_command_string(string)
+                for string in input_strings
+            ]
+
+            for args in input_commands:
+                try:
+                    run_edit_command(pdf, args)
+                    command_stack.append(args)
+                except exceptions.ShellExport as export:
+                    export_commands(args.filename, command_stack)
+                except exceptions.ExpectedError as e:
+                    print(e)
+                except Exception as e:
+                    utils.print_unexpected_exception(e, Config.Debug)
+
+            pdf.write(infile)
+
+    if exit_immediately:
+        return
+
     while True:
         try:
-            args = parse_command_string(input(""))
+            args = utils.parse_command_string(input(""))
             run_edit_command(pdf, args)
             command_stack.append(args)
 
@@ -226,10 +258,7 @@ def edit(infile: str):
 
             pdf.write(infile)
         except exceptions.ShellExport as export:
-            with open(export.filename, "w") as outfile:
-                outfile.write("\n".join([
-                    " ".join(args) for args in command_stack
-                ]))
+            export_commands(args.filename, command_stack)
         except exceptions.ExpectedError as e:
             print(e)
         except Exception as e:
