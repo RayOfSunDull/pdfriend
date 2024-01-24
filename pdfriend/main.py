@@ -71,30 +71,6 @@ program_info = info.ProgramInfo(
             pdfriend cache clear
                 clears the cache
     """),
-    info.CommandInfo("swap", "swap", descr = """ [filename] [page_0] [page_1] [-o|--outfile?=pdfriend_output.pdf] [-i|--inplace?]
-        swaps the specified pages in the PDF file. Adding -i or --inplace will make it so the input file is modified, instead of creating a new one.
-
-        examples:
-            pdfriend swap notes.pdf 1 3 -i
-                swaps pages 1 and 3 in notes.pdf (modifies the file)
-            pdfriend swap templ.pdf 6 3 -o new-templ.pdf
-                swaps pages 6 and 3 and saves to new-templ.pdf
-            pdfriend swap k.pdf 2 9
-                swaps pages 2 and 9 and saves to pdfriend_output.pdf
-    """),
-    info.CommandInfo("remove", "rm", descr = """ [filename] [pages] [-o|--outfile?=pdfriend_output.pdf] [-i|--inplace?]
-        removes specified pages from the PDF file. Adding -i or --inplace will make it so the input file is modified, instead of creating a new one.
-
-        examples:
-            pdfriend remove input.pdf 6
-                removes page 6 and saves to pdfriend_output.pdf
-            pdfriend remove input.pdf 5,6,9 -o out.pdf
-                removes pages 5,6,9 and saves to out.pdf
-            pdfriend remove input.pdf 3-7 -o out
-                removes pages 3 through 7 (INCLUDING 7) and saves to out.pdf
-            pdfriend remove input.pdf 13,2,4-7,1 -i
-                removes pages 1,2,4,5,6,7,13 from input.pdf (modifies the file)
-    """),
     info.CommandInfo("weave", "w", descr = """ [filename_0] [filename_1] [-o|--outfile?=pdfriend_output.pdf]
         combines two PDFs such that the first fills the odd pages and the second the even pages of the output.
 
@@ -183,25 +159,8 @@ def run_pdfriend(args):
                 args.outfile = infile
 
             commands.invert(infile, args.outfile)
-        elif short == "swap":
-            infile = cmd_parser.next_str("filename")
-            page_0 = cmd_parser.next_int("page_0")
-            page_1 = cmd_parser.next_int("page_1")
-
-            if args.inplace:
-                args.outfile = infile
-
-            commands.swap(infile, page_0, page_1, args.outfile)
         elif short == "c":
             commands.clear()
-        elif short == "rm":
-            infile = cmd_parser.next_str("filename")
-            slice = cmd_parser.next_str("pages")
-
-            if args.inplace:
-                args.outfile = infile
-
-            commands.remove(infile, slice, args.outfile)
         elif short == "w":
             infile_0 = cmd_parser.next_str("filename_0")
             infile_1 = cmd_parser.next_str("filename_1")
