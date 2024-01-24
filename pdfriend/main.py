@@ -160,7 +160,6 @@ def run_pdfriend(args):
         elif short == "e":
             infile = cmd_parser.next_str("filename")
 
-            input_commands = None
             input_file = None
             exit_immediately = False
             if args.use is not None:

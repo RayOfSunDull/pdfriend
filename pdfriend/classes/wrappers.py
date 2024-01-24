@@ -49,7 +49,7 @@ class PDFWrapper:
             split_subslice = subslice.split(":")
             first, last = split_subslice[0], split_subslice[-1]
 
-            # such that n- means n-end and -n means 1-n
+            # such that n: means n:end and :n means 1:n
             first = 1 if first == "" else int(first)
             last = self.len() if last == "" else int(last)
 
