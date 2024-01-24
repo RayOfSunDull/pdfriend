@@ -68,6 +68,14 @@ To swap pages 3 and 7, or
 undo
 ```
 To undo the previous command, etc. Use
+```sh
+pdfriend encrypt sus.pdf -o sus-encrypted.pdf
+```
+to encrypt the PDF with a password. Use
+```sh
+pdfriend invert wrong.pdf -o right.pdf
+```
+to invert the order of the pages in a PDF. Use
 ```
 help
 ```
