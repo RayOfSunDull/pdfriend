@@ -40,7 +40,7 @@ program_info = info.ProgramInfo(
                 splits in.pdf into one part with pages 1-4 and another with 5-end and puts them in a directory named parts
             pdfriend split input.pdf 4,7
                 splits input.pdf into 3 parts, one has pages 1-3, another 4-6 and another 7-end and puts them in a directory named pdfriend_output
-            pdfriend split thing.pdf 8-11
+            pdfriend split thing.pdf 8:11
                 splits thing.pdf into 4 parts, one has pages 1-7, another has page 8, the other page 9, the other page 10, and the other pages 11-end and puts them in a directory named pdfriend_output
             pdfriend split infile.pdf all -o pages
                 splits infile.pdf into individual pages and puts them in a directory named pages

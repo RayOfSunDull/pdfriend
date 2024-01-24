@@ -35,9 +35,9 @@ program_info = info.ProgramInfo(
             rotates page 34 clockwise by 1.2 degrees
         r 1,3,8 -4
             rotates pages 1,3 and 8 counter-clockwise by 4 degrees
-        r 3-18 90
+        r 3:18 90
             rotates pages 3 through 18 (INCLUDING 18) clockwise by 90 degrees
-        r 1,13,5-7,2 54
+        r 1,13,5:7,2 54
             rotates pages 1,2,5,6,7,13 clockwise by 54 degrees
         r all -90
             rotates all pages counter-clockwise by 90 degrees
@@ -50,9 +50,11 @@ program_info = info.ProgramInfo(
             deletes page 7
         d 4,8,1
             deletes pages 1, 4 and 8
-        d 6-66
+        d 6:66
             deletes pages 6 through 66 (INCLUDING 66)
-        d 4,17,3-6
+        d :13
+            deletes all pages up to and including 13
+        d 4,17,3:6
             deletes pages 3,4,5,6 and 17
     """),
     info.CommandInfo("swap", "s", descr = """[page_0] [page_1]
@@ -75,16 +77,16 @@ program_info = info.ProgramInfo(
             moves page 3 to 7 pages down, i.e. to page 10.
         p 4,9,2 1
             moves pages 2,4,9 by 1 page.
-        p 5-8 -3
+        p 5:8 -3
             moves pages 5,6,7,8 to 3 pages BACK.
-        p 5,6,90-94 5
+        p 5,6,90:94 5
             moves pages 5,6,90,91,92,93,94 to be 5 pages down.
-        p -5 4
+        p :5 4
             moves pages 1,2,3,4,5 to be 4 pages down.
-        p 67- -7
+        p 67: -7
             move pages from 67 to the end of the PDF to be 7 pages back.
-        p 70- 5
-            FAILS. 70- includes the end of the PDF, and you can't move that further down.
+        p 70: 5
+            FAILS. 70: includes the end of the PDF, and you can't move that further down.
     """),
     info.CommandInfo("undo", "u", descr = """[number?]
     undo the previous [number] commands.
@@ -129,7 +131,7 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
     elif short == "e":
         raise exceptions.ShellExit()
     elif short == "r":
-        pages = cmd_parser.next_typed("PDF slice", lambda s: pdf.slice(s), "pages")
+        pages = cmd_parser.next_pdf_slice()
         angle = cmd_parser.next_float("angle")
 
         if len(pages) == 0:
@@ -142,7 +144,7 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
         for page in pages:
             pdf.rotate_page(page, angle)
     elif short == "d":
-        pages = cmd_parser.next_typed("PDF slice", lambda s: pdf.slice(s))
+        pages = cmd_parser.next_pdf_slice()
 
         for page in pages:
             pdf.pop_page(page)
@@ -162,7 +164,7 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
         page = pdf.pages.pop(source - 1)
         pdf.pages.insert(destination - 1, page)
     elif short == "p":
-        pages = cmd_parser.next_typed("PDF slice", lambda s: pdf.slice(s), "pages")
+        pages = cmd_parser.next_pdf_slice()
         offset = cmd_parser.next_int("offset")
 
         last_page_before = pages[-1]
