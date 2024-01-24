@@ -1,6 +1,7 @@
 import pypdf
 import datetime
 import pathlib
+import pdfriend.classes.exceptions as exceptions
 from typing import Self
 from PIL import Image
 from pdfriend.classes.platforms import Platform
