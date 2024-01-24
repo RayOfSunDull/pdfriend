@@ -1,6 +1,8 @@
 import platformdirs
 import pathlib
 import shutil
+import platform
+import os
 
 def ensuredir(path: pathlib.Path):
     if not path.exists():
@@ -30,3 +32,14 @@ class Platform:
     @classmethod
     def NewBackup(cls, path_name: str) -> pathlib.Path:
         return cls.BackupDir.joinpath(path_name)
+
+    @classmethod
+    def OpenFile(self, filename: str):
+        sys = platform.system()
+        if sys == "Linux":
+            subprocess.run(["xdg-open", filename])
+        elif sys == "Darwin":
+            subprocess.run(["open", filename])
+        elif sys == "Windows":
+            os.startfile(filename)
+
