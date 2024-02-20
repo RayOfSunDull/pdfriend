@@ -1,9 +1,7 @@
 import pdfriend.classes.wrappers as wrappers
 
 
-def invert(infile: str, outfile: str):
-    pdf = wrappers.PDFWrapper.Read(infile)
-
+def invert(pdf: wrappers.PDFWrapper, outfile: str):
     pdf.invert()
 
     pdf.write(outfile)

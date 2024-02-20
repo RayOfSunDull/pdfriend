@@ -1,13 +1,38 @@
 import pdfriend.classes.exceptions as exceptions
 import pdfriend.classes.wrappers as wrappers
 import pdfriend.classes.info as info
+from pdfriend.classes.config import Config
+import pathlib
 import re
 from typing import Self
 
-def arg_str(arg_num: int, arg_name: str | None) -> str:
-    arg_name_str = "" if arg_name is None else f" (\"{arg_name}\")"
+def to_typed(input: str, type_name: str, type_converter, name: str | None = None, err_message = ""):
+    try:
+        return type_converter(input)
+    except Exception:
+        raise exceptions.ExpectedError(
+            f"value \"{input}\" could not be converted to type \"{type_name}\"{err_message}"
+        )
 
-    return f"argument {arg_num}{arg_name_str}"
+def to_file(input: str, name: str | None = None, err_message = "") -> pathlib.Path:
+    file_path = pathlib.Path(input)
+    if not file_path.is_file():
+        raise exceptions.ExpectedError(
+            f"file \"{file_path}\" was not found{err_message}"
+        )
+
+    return file_path
+
+def to_pdf(input: str, name: str | None = None, err_message = "") -> wrappers.PDFWrapper:
+    file_path = to_file(input, err_message = err_message)
+
+    try:
+        return wrappers.PDFWrapper.Read(file_path)
+    except Exception as e:
+        debug_message = "\nadditional info:\n{e}" if Config.Debug else ""
+        raise exceptions.ExpectedError(
+            f"file \"{file_path}\" could not be read as PDF{err_message}{debug_message}"
+        )
 
 class CmdParser:
     def __init__(self, cmd_info: str, args: list[str]):
@@ -20,6 +45,14 @@ class CmdParser:
 
     def short(self) -> str:
         return self.cmd_info.short_name
+
+    def arg_str(self, arg_name: str | None) -> str:
+        arg_name_str = "" if arg_name is None else f" (\"{arg_name}\")"
+
+        return f"argument {self.current_arg}{arg_name_str}"
+
+    def loc_str(self, arg_name: str | None) -> str:
+        return f"--> in {self.arg_str(arg_name)} of command \"{self.name()}\""
 
     @classmethod
     def FromArgs(cls,
@@ -55,17 +88,26 @@ class CmdParser:
             no_command_message = no_command_message
         )
 
-    def next_str(self, name: str | None = None):
+    def ensure_next_exists(self, name: str | None = None):
         if len(self.args) == 0:
             raise exceptions.ExpectedError(
-                f"{arg_str(self.current_arg, name)} for command \"{self.name()}\" not provided"
+                f"{self.arg_str(name)} for command \"{self.name()}\" not provided"
             )
 
-        head, tail = self.args[0], self.args[1:]
+    def advance(self, head, tail):
         self.args = tail
         self.current_arg += 1
-
         return head
+
+    def split_head(self, name: str | None = None):
+        self.ensure_next_exists(name = name)
+
+        return (self.args[0], self.args[1:])
+
+    def next_str(self, name: str | None = None):
+        head, tail = self.split_head(name = name)
+
+        return self.advance(head, tail)
 
     def next_str_or(self, default: str, name: str | None = None) -> str:
         try:
@@ -74,16 +116,16 @@ class CmdParser:
             return default
 
     def next_typed(self, type_name: str, type_converter, name: str | None = None):
-        head = self.next_str(name)
+        head, tail = self.split_head(name = name)
 
-        try:
-            result = type_converter(head)
-            return result
-        except Exception:
-            self.current_arg -= 1 # it gets incremented in next_str()
-            raise exceptions.ExpectedError(
-                f"value \"{head}\" of {arg_str(self.current_arg, name)} for command \"{self.name()}\" could not be converted to type \"{type_name}\""
-            )
+        return self.advance(
+            to_typed(
+                head, type_name, type_converter,
+                name = name,
+                err_message = f"\n{self.loc_str(name)}"
+            ),
+            tail
+        )
 
     def next_typed_or(self, type_name: str, type_converter, default, name: str | None = None):
         try:
@@ -101,11 +143,11 @@ class CmdParser:
             return default
 
     def next_float(self, name: str | None = None) -> float:
-        return self.next_typed("float", float, name)
+        return self.next_typed("float", float, name = name)
 
     def next_float_or(self, default: float, name: str | None = None) -> float:
         try:
-            return self.next_float(name)
+            return self.next_float(name = name)
         except Exception:
             return default
 
@@ -118,4 +160,19 @@ class CmdParser:
         except Exception:
             return default
 
+    def next_file(self, name: str | None = None) -> pathlib.Path:
+        head, tail = self.split_head(name = name)
+
+        return self.advance(
+            to_file(head, name, err_message = f"\n{self.loc_str(name)}"),
+            tail
+        )
+
+    def next_pdf(self, name: str | None = None) -> wrappers.PDFWrapper:
+        head, tail = self.split_head(name = name)
+
+        return self.advance(
+            to_pdf(head, name, err_message = f"\n{self.loc_str(name)}"),
+            tail
+        )
 

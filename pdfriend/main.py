@@ -156,52 +156,52 @@ def run_pdfriend(args):
 
             commands.merge(cmd_parser.args, args.outfile, args.quality)
         elif short == "e":
-            infile = cmd_parser.next_str("filename")
+            pdf = cmd_parser.next_pdf("filename")
 
             # I have to do this because args.import is a syntax error
             # for some reason. Must be messing with the import keyword?
-            input_file = args.__getattribute__("import")
+            import_file = args.__getattribute__("import")
 
-            commands.edit(infile, input_file = input_file)
+            commands.edit(pdf, import_file)
         elif short == "i":
-            infile = cmd_parser.next_str("filename")
+            pdf = cmd_parser.next_pdf("filename")
 
             if args.inplace:
-                args.outfile = infile
+                args.outfile = pdf.source
 
-            commands.invert(infile, args.outfile)
+            commands.invert(pdf, args.outfile)
         elif short == "c":
             subcommand = cmd_parser.next_str("subcommand")
 
             commands.cache(subcommand)
         elif short == "w":
-            infile_0 = cmd_parser.next_str("filename_0")
-            infile_1 = cmd_parser.next_str("filename_1")
+            pdf_0 = cmd_parser.next_pdf("filename_0")
+            pdf_1 = cmd_parser.next_pdf("filename_1")
 
-            commands.weave(infile_0, infile_1, args.outfile)
+            commands.weave(pdf_0, pdf_1, args.outfile)
         elif short == "s":
-            infile = cmd_parser.next_str("filename")
-            slice = cmd_parser.next_str("pages")
+            pdf = cmd_parser.next_pdf("filename")
+            slice = cmd_parser.next_pdf_slice(pdf, name = "pages")
 
-            commands.split(infile, slice, args.outfile)
+            commands.split(pdf, slice, args.outfile)
         elif short == "n":
-            infile = cmd_parser.next_str("filename")
+            pdf = cmd_parser.next_pdf("filename")
 
             if args.inplace:
-                args.outfile = infile
+                args.outfile = pdf.source
 
-            commands.encrypt(infile, args.outfile)
+            commands.encrypt(pdf, args.outfile)
         elif short == "d":
-            infile = cmd_parser.next_str("filename")
+            infile = cmd_parser.next_file("filename")
 
             if args.inplace:
                 args.outfile = infile
 
             commands.decrypt(infile, args.outfile)
         elif short == "meta":
-            infile = cmd_parser.next_str("filename")
+            pdf = cmd_parser.next_pdf("filename")
 
-            commands.metadata(infile, args.get, args.set, args.pop)
+            commands.metadata(pdf, args.get, args.set, args.pop)
         else:
             print(f"command \"{command}\" not recognized")
             print("use pdfriend help for a list of the available commands")

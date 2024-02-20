@@ -8,9 +8,11 @@ from pdfriend.classes.platforms import Platform
 
 class PDFWrapper:
     def __init__(self,
+        source: pathlib.Path = None,
         pages: list[pypdf.PageObject] = None,
         metadata: pypdf.DocumentInformation = None
     ):
+        self.source = source
         self.pages = pages or []
         self.metadata = metadata
         if metadata is not None:
@@ -27,8 +29,18 @@ class PDFWrapper:
         pdf = pypdf.PdfReader(filename)
 
         return PDFWrapper(
-            pages = list(pdf.pages), metadata = pdf.metadata
+            source = pathlib.Path(filename),
+            pages = list(pdf.pages),
+            metadata = pdf.metadata
         )
+
+    def reread(self, source: pathlib.Path, keep_metadata: bool = True):
+        new_pdf = PDFWrapper.Read(source)
+        self.pages = new_pdf.pages
+        if not keep_metadata:
+            self.metadata = new_pdf.metadata
+
+        return self
 
     def len(self):
         return len(self.pages)
@@ -126,7 +138,10 @@ class PDFWrapper:
 
         return writer
 
-    def write(self, filename: str, keep_metadata = True):
+    def write(self, filename: str = None, keep_metadata = True):
+        if filename is None:
+            filename = self.source
+
         writer = self.to_writer()
         if keep_metadata and self.metadata is not None:
             writer.add_metadata(self.metadata)
@@ -135,7 +150,10 @@ class PDFWrapper:
             pathlib.Path(filename).with_suffix(".pdf")
         )
 
-    def backup(self, name: str | pathlib.Path) -> pathlib.Path:
+    def backup(self, name: str | pathlib.Path = None) -> pathlib.Path:
+        if name is None:
+            name = self.source
+
         if not isinstance(name, pathlib.Path):
             name = pathlib.Path(name)
 

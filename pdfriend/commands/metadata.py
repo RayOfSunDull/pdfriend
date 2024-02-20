@@ -2,13 +2,11 @@ import pdfriend.classes.wrappers as wrappers
 import pdfriend.classes.exceptions as exceptions
 
 def metadata(
-    infile: str,
+    pdf: wrappers.PDFWrapper,
     get: str | None = None,
     set_str: str | None = None,
     pop: str | None = None
 ):
-    pdf = wrappers.PDFWrapper.Read(infile)
-
     if get is not None:
         try:
             print(pdf.metadata[get])
@@ -25,7 +23,7 @@ def metadata(
             try:
                 key, val = set_pair_split[0], set_pair_split[1]
                 pdf.metadata[key] = val
-                pdf.write(infile)
+                pdf.write()
             except Exception:
                 raise exceptions.ExpectedError(f"metadata key \"{key}\" is invalid")
     elif pop is not None:

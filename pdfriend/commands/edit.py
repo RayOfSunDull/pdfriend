@@ -125,7 +125,7 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
     elif short == "e":
         raise exceptions.ShellExit()
     elif short == "r":
-        pages = cmd_parser.next_pdf_slice(pdf)
+        pages = cmd_parser.next_pdf_slice(pdf, "pages")
         angle = cmd_parser.next_float("angle")
 
         if len(pages) == 0:
@@ -138,7 +138,7 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
         for page in pages:
             pdf.rotate_page(page, angle)
     elif short == "d":
-        pages = cmd_parser.next_pdf_slice(pdf)
+        pages = cmd_parser.next_pdf_slice(pdf, "pages")
 
         for page in pages:
             pdf.pop_page(page)
@@ -158,7 +158,7 @@ def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
         page = pdf.pages.pop(source - 1)
         pdf.pages.insert(destination - 1, page)
     elif short == "p":
-        pages = cmd_parser.next_pdf_slice(pdf)
+        pages = cmd_parser.next_pdf_slice(pdf, "pages")
         offset = cmd_parser.next_int("offset")
 
         last_page_before = pages[-1]
@@ -194,28 +194,25 @@ def export_commands(filename: str, command_stack: list[list[str]]):
             " ".join(args) for args in command_stack
         ]))
 
-
-
 def edit(
-    infile: str,
-    input_file: str | None = None,
+    pdf: wrappers.PDFWrapper,
+    import_file: str | None = None,
 ):
-    pdf = wrappers.PDFWrapper.Read(infile)
     command_stack: list[list[str]] = []
 
-    input_path = None
-    if input_file is not None:
-        input_path = pathlib.Path(input_file)
-        if not input_path.is_file():
-            print(f"file \"{input_file}\" does not exist, did not load edit commands")
+    import_path = None
+    if import_file is not None:
+        import_path = pathlib.Path(import_file)
+        if not import_path.is_file():
+            print(f"file \"{import_file}\" does not exist, did not load edit commands")
             return
 
     # backup the file, because it will be overwritten
-    backup_path = pdf.backup(infile)
-    print(f"editing {infile}\nbackup created in {backup_path}")
+    backup_path = pdf.backup()
+    print(f"editing {pdf.source}\nbackup created in {backup_path}")
 
-    if input_path is not None:
-        input_strings = input_path.read_text().split("\n")
+    if import_path is not None:
+        input_strings = import_path.read_text().split("\n")
         input_commands = [
             utils.parse_command_string(string)
             for string in input_strings
@@ -232,7 +229,7 @@ def edit(
             except Exception as e:
                 utils.print_unexpected_exception(e, Config.Debug)
 
-        pdf.write(infile)
+        pdf.write()
 
         return
 
@@ -242,7 +239,7 @@ def edit(
             run_edit_command(pdf, args)
             command_stack.append(args)
 
-            pdf.write(infile) # overwrites the file!
+            pdf.write() # overwrites the file!
         except (KeyboardInterrupt, exceptions.ShellExit):
             return
         except exceptions.ShellContinue:
@@ -253,11 +250,11 @@ def edit(
             else:
                 command_stack = command_stack[:-undo.num]
 
-            pdf = wrappers.PDFWrapper.Read(backup_path)
+            pdf.reread(backup_path)
             for args in command_stack:
                 run_edit_command(pdf, args)
 
-            pdf.write(infile)
+            pdf.write()
         except exceptions.ShellExport as export:
             export_commands(args.filename, command_stack)
         except exceptions.ExpectedError as e:

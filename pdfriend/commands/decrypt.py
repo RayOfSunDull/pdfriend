@@ -10,6 +10,6 @@ def decrypt(infile: str, outfile: str):
 
         pdf.decrypt(password)
 
-    wrapper = wrappers.PDFWrapper(pdf.pages)
+    wrapper = wrappers.PDFWrapper(pages = pdf.pages)
     wrapper.write(outfile)
 
