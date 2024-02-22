@@ -86,6 +86,21 @@ program_info = info.ProgramInfo(
             pdfriend weave k.pdf l.pdf -o weaved.pdf
                 weaves the two PDFs and saves the output to weaved.pdf
     """),
+    info.CommandInfo("get", "g", descr = """ [filename] [pages] [-o|--outfile?=pdfriend_output.pdf] [-i|--inplace?]
+        takes the given pages out of the PDF and puts them in the specified output file.
+
+        examples:
+            pdfriend get comic.pdf 34 -o comic-34.pdf
+                gets the 34th page of comic.pdf and puts it into comic-34.pdf
+            pdfriend get sth.pdf 1,2,7
+                gets the pages 1,2,7 from sth.pdf and puts them into pdfriend_output.pdf
+            pdfriend get reef.pdf 3:54 -o reef_main.pdf
+                gets pages 3 through 54 (INCLUDING 54) and puts them into reef_main.pdf
+            pdfriend get shrimp_manual.pdf 5: -o shrimp_manual_trimmed.pdf
+                gets pages from 5 to the end of shrimp_manual.pdf and puts them into shrimp_manual_trimmed.pdf
+            pdfriend get notes.pdf 3,4:15,18,20 -i
+                gets pages 3,4,5,...,15,18,20 from notes.pdf and MODIFIES the file such that it only has those pages
+    """),
     info.CommandInfo("encrypt", "n", descr = """ [filename] [-o|--outfile?=pdfriend_output.pdf] [-i|--inplace?]
         creates an encrypted PDF file using a provided password. Adding -i or --inplace will make it so that the file itself is encrypted.
 
@@ -184,6 +199,14 @@ def run_pdfriend(args):
             slice = cmd_parser.next_pdf_slice(pdf, name = "pages")
 
             commands.split(pdf, slice, args.outfile)
+        elif short == "g":
+            pdf = cmd_parser.next_pdf("filename")
+            slice = cmd_parser.next_pdf_slice(pdf, name = "pages")
+
+            if args.inplace:
+                args.outfile = pdf.source
+
+            commands.get(pdf, slice, args.outfile)
         elif short == "n":
             pdf = cmd_parser.next_pdf("filename")
 
