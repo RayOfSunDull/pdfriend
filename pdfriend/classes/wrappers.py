@@ -74,6 +74,16 @@ class PDFWrapper:
 
         return sorted(list(set(result)))
 
+    def subset(self, slice: str | list[str]) -> Self:
+        if isinstance(slice, str):
+            slice = self.slice(slice)
+
+        return PDFWrapper(
+            source = self.source,
+            pages = [self.pages[idx - 1] for idx in slice],
+            metadata = self.metadata
+        )
+
     def raise_if_out_of_range(self, page_num: int):
         if page_num >= 1 and page_num <= self.len():
             return
