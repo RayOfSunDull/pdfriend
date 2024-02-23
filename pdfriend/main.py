@@ -52,7 +52,7 @@ program_info = info.ProgramInfo(
         pdfriend merge pdf1.pdf folder_name/* img.jpg pdf2.pdf -o apricot.pdf
             merges every file given, including all files in folder_name, into apricot.pdf
     """),
-    info.CommandInfo("edit", "e", descr = """ [filename] [-u|--use command_file?] [-U|--use_only command_file?]
+    info.CommandInfo("edit", "e", descr = """ [filename] [-I|--import command_file?]
         edit the selected file in place, using a set of subcommands. After launching the edit shell, you can type h or help to list the subcommands. You can import pdfriend edit subcommands from text files using -I. The text files must have the edit subcommands as you would write them on the shell, separated by newlines. Try running some commands in the edit shell and then exporting them using the x command.
 
         examples:
