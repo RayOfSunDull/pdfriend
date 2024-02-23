@@ -34,6 +34,19 @@ def to_pdf(input: str, name: str | None = None, err_message = "") -> wrappers.PD
             f"file \"{file_path}\" could not be read as PDF{err_message}{debug_message}"
         )
 
+
+def to_shell_import(input: str, name: str | None = None, err_message = "") -> list[str]:
+    file = to_file(input, name = name, err_message = err_message)
+    try:
+        return [
+            line for line in file.read_text().split("\n")
+            if line != ""
+        ]
+    except Exception:
+        raise exceptions.ExpectedError(
+            f"could not read commands from file {input}{err_message}"
+        )
+
 class CmdParser:
     def __init__(self, cmd_info: str, args: list[str]):
         self.cmd_info = cmd_info
@@ -168,6 +181,13 @@ class CmdParser:
             tail
         )
 
+
+    def next_file_or(self, default: pathlib.Path, name: str | None = None) -> pathlib.Path:
+        try:
+            return self.next_file(name = name)
+        except Exception:
+            return default
+
     def next_pdf(self, name: str | None = None) -> wrappers.PDFWrapper:
         head, tail = self.split_head(name = name)
 
@@ -175,4 +195,10 @@ class CmdParser:
             to_pdf(head, name, err_message = f"\n{self.loc_str(name)}"),
             tail
         )
+
+    def next_pdf_or(self, default: wrappers.PDFWrapper, name: str | None = None) -> wrappers.PDFWrapper:
+        try:
+            return self.next_pdf(name = name)
+        except Exception:
+            return default
 

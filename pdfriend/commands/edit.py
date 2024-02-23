@@ -1,6 +1,7 @@
 import pdfriend.classes.wrappers as wrappers
 import pdfriend.classes.exceptions as exceptions
 import pdfriend.classes.cmdparsers as cmdparsers
+import pdfriend.classes.shells as shells
 import pdfriend.classes.info as info
 from pdfriend.classes.platforms import Platform
 from pdfriend.classes.config import Config
@@ -107,158 +108,116 @@ program_info = info.ProgramInfo(
 )
 
 
-def run_edit_command(pdf: wrappers.PDFWrapper, args: list[str]):
-    cmd_parser = cmdparsers.CmdParser.FromArgs(
-        program_info,
-        args,
-        no_command_message = "No command specified! Type h or help for a list of the available commands"
-    )
-    short = cmd_parser.short()
+class EditRunner(shells.ShellRunner):
+    def __init__(self, pdf: wrappers.PDFWrapper):
+        backup_path = pdf.backup()
+        print(f"editing {pdf.source}\nbackup created in {backup_path}")
 
-    if short == "h":
-        subcommand = cmd_parser.next_str_or(None)
-        print(program_info.help(subcommand))
+        self.pdf = pdf
+        self.backup_path = backup_path
 
-        # this is to prevent rewriting the file and appending
-        # the command to the command stack
-        raise exceptions.ShellContinue()
-    elif short == "e":
-        raise exceptions.ShellExit()
-    elif short == "r":
-        pages = cmd_parser.next_pdf_slice(pdf, "pages")
-        angle = cmd_parser.next_float("angle")
+    def parse(self, arg_str) -> list[str]:
+        return utils.parse_command_string(arg_str)
 
-        if len(pages) == 0:
-            return
-        # the slice is sorted, so if any pages are out of range, it'll
-        # either be the first or the last one, probably the last
-        pdf.raise_if_out_of_range(pages[-1])
-        pdf.raise_if_out_of_range(pages[0])
+    def run(self, args: list[str]):
+        cmd_parser = cmdparsers.CmdParser.FromArgs(
+            program_info,
+            args,
+            no_command_message = "No command specified! Type h or help for a list of the available commands"
+        )
+        short = cmd_parser.short()
 
-        for page in pages:
-            pdf.rotate_page(page, angle)
-    elif short == "d":
-        pages = cmd_parser.next_pdf_slice(pdf, "pages")
+        if short == "h":
+            subcommand = cmd_parser.next_str_or(None)
+            print(program_info.help(subcommand))
 
-        for page in pages:
-            pdf.pop_page(page)
-    elif short == "s":
-        page_0 = cmd_parser.next_int("page_0")
-        pdf.raise_if_out_of_range(page_0)
-        page_1 = cmd_parser.next_int("page_1")
-        pdf.raise_if_out_of_range(page_1)
+            # this is to prevent rewriting the file and appending
+            # the command to the command stack
+            raise exceptions.ShellContinue()
+        elif short == "e":
+            raise exceptions.ShellExit()
+        elif short == "r":
+            pages = cmd_parser.next_pdf_slice(self.pdf, "pages")
+            angle = cmd_parser.next_float("angle")
 
-        pdf.swap_pages(page_0, page_1)
-    elif short == "m":
-        source = cmd_parser.next_int("source")
-        pdf.raise_if_out_of_range(source)
-        destination = cmd_parser.next_int("destination")
-        pdf.raise_if_out_of_range(destination)
+            if len(pages) == 0:
+                return
+            # the slice is sorted, so if any pages are out of range, it'll
+            # either be the first or the last one, probably the last
+            self.pdf.raise_if_out_of_range(pages[-1])
+            self.pdf.raise_if_out_of_range(pages[0])
 
-        page = pdf.pages.pop(source - 1)
-        pdf.pages.insert(destination - 1, page)
-    elif short == "p":
-        pages = cmd_parser.next_pdf_slice(pdf, "pages")
-        offset = cmd_parser.next_int("offset")
+            for page in pages:
+                self.pdf.rotate_page(page, angle)
+        elif short == "d":
+            pages = cmd_parser.next_pdf_slice(self.pdf, "pages")
 
-        last_page_before = pages[-1]
-        last_page_after = last_page_before + offset
+            for page in pages:
+                self.pdf.pop_page(page)
+        elif short == "s":
+            page_0 = cmd_parser.next_int("page_0")
+            self.pdf.raise_if_out_of_range(page_0)
+            page_1 = cmd_parser.next_int("page_1")
+            self.pdf.raise_if_out_of_range(page_1)
 
-        if last_page_after > pdf.len(): # only check last page, as the slice is sorted
-            raise exceptions.ExpectedError(
-                f"can't move page {last_page_before} to {last_page_after}, as it's outside the PDF (number of pages: {pdf.len()})"
+            self.pdf.swap_pages(page_0, page_1)
+        elif short == "m":
+            source = cmd_parser.next_int("source")
+            self.pdf.raise_if_out_of_range(source)
+            destination = cmd_parser.next_int("destination")
+            self.pdf.raise_if_out_of_range(destination)
+
+            page = self.pdf.pages.pop(source - 1)
+            self.pdf.pages.insert(destination - 1, page)
+        elif short == "p":
+            pages = cmd_parser.next_pdf_slice(self.pdf, "pages")
+            offset = cmd_parser.next_int("offset")
+
+            last_page_before = pages[-1]
+            last_page_after = last_page_before + offset
+
+            if last_page_after > self.pdf.len(): # only check last page, as the slice is sorted
+                raise exceptions.ExpectedError(
+                    f"can't move page {last_page_before} to {last_page_after}, as it's outside the PDF (number of pages: {self.pdf.len()})"
+                )
+
+            if offset > 0:
+                pages = pages[::-1]
+
+            for page in pages:
+                p = self.pdf.pages.pop(page - 1)
+                self.pdf.pages.insert(page + offset - 1, p)
+        elif short == "u":
+            # arg will be converted to int, unless it's "all". Defaults to 1
+            num_of_commands = cmd_parser.next_typed_or(
+                "int or \"all\"", lambda s: s if s == "all" else int(s),
+                1 # default value
             )
 
-        if offset > 0:
-            pages = pages[::-1]
+            raise exceptions.ShellUndo(num_of_commands)
+        elif short == "x":
+            filename = cmd_parser.next_str_or("pdfriend_edit.txt")
 
-        for page in pages:
-            p = pdf.pages.pop(page - 1)
-            pdf.pages.insert(page + offset - 1, p)
-    elif short == "u":
-        # arg will be converted to int, unless it's "all". Defaults to 1
-        num_of_commands = cmd_parser.next_typed_or(
-            "int or \"all\"", lambda s: s if s == "all" else int(s),
-            1 # default value
-        )
+            raise exceptions.ShellExport(filename)
 
-        raise exceptions.ShellUndo(num_of_commands)
-    elif short == "x":
-        filename = cmd_parser.next_str_or("pdfriend_edit.txt")
+    def reset(self):
+        self.pdf.reread(self.backup_path)
 
-        raise exceptions.ShellExport(filename)
+    def save(self):
+        self.pdf.write()
 
-def export_commands(filename: str, command_stack: list[list[str]]):
-    with open(filename, "w") as outfile:
-        outfile.write("\n".join([
-            " ".join(args) for args in command_stack
-        ]))
 
 def edit(
     pdf: wrappers.PDFWrapper,
-    import_file: str | None = None,
+    commands: list[str] | None = None
 ):
-    command_stack: list[list[str]] = []
+    edit_shell = shells.Shell(
+        runner = EditRunner(pdf)
+    )
 
-    import_path = None
-    if import_file is not None:
-        import_path = pathlib.Path(import_file)
-        if not import_path.is_file():
-            print(f"file \"{import_file}\" does not exist, did not load edit commands")
-            return
-
-    # backup the file, because it will be overwritten
-    backup_path = pdf.backup()
-    print(f"editing {pdf.source}\nbackup created in {backup_path}")
-
-    if import_path is not None:
-        input_strings = import_path.read_text().split("\n")
-        input_commands = [
-            utils.parse_command_string(string)
-            for string in input_strings
-        ]
-
-        for args in input_commands:
-            try:
-                run_edit_command(pdf, args)
-                command_stack.append(args)
-            except exceptions.ShellExport as export:
-                export_commands(args.filename, command_stack)
-            except exceptions.ExpectedError as e:
-                print(e)
-            except Exception as e:
-                utils.print_unexpected_exception(e, Config.Debug)
-
-        pdf.write()
-
+    if commands is not None:
+        edit_shell.run(commands)
         return
 
-    while True:
-        try:
-            args = utils.parse_command_string(input(""))
-            run_edit_command(pdf, args)
-            command_stack.append(args)
-
-            pdf.write() # overwrites the file!
-        except (KeyboardInterrupt, exceptions.ShellExit):
-            return
-        except exceptions.ShellContinue:
-            continue
-        except exceptions.ShellUndo as undo:
-            if undo.num == "all":
-                command_stack = []
-            else:
-                command_stack = command_stack[:-undo.num]
-
-            pdf.reread(backup_path)
-            for args in command_stack:
-                run_edit_command(pdf, args)
-
-            pdf.write()
-        except exceptions.ShellExport as export:
-            export_commands(args.filename, command_stack)
-        except exceptions.ExpectedError as e:
-            print(e)
-        except Exception as e:
-            utils.print_unexpected_exception(e, Config.Debug)
+    edit_shell.run()
 

@@ -176,8 +176,11 @@ def run_pdfriend(args):
             # I have to do this because args.import is a syntax error
             # for some reason. Must be messing with the import keyword?
             import_file = args.__getattribute__("import")
+            import_args = None
+            if import_file is not None:
+                import_args = cmdparsers.to_shell_import(import_file)
 
-            commands.edit(pdf, import_file)
+            commands.edit(pdf, import_args)
         elif short == "i":
             pdf = cmd_parser.next_pdf("filename")
 
