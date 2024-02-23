@@ -215,9 +215,5 @@ def edit(
         runner = EditRunner(pdf)
     )
 
-    if commands is not None:
-        edit_shell.run(commands)
-        return
-
-    edit_shell.run()
+    edit_shell.run(commands)
 
