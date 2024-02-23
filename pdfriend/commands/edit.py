@@ -109,12 +109,15 @@ program_info = info.ProgramInfo(
 
 
 class EditRunner(shells.ShellRunner):
-    def __init__(self, pdf: wrappers.PDFWrapper):
+    def __init__(self, pdf: wrappers.PDFWrapper, open_pdf: bool = True):
         backup_path = pdf.backup()
         print(f"editing {pdf.source}\nbackup created in {backup_path}")
 
         self.pdf = pdf
         self.backup_path = backup_path
+
+        if open_pdf:
+            Platform.OpenFile(pdf.source)
 
     def parse(self, arg_str) -> list[str]:
         return utils.parse_command_string(arg_str)
@@ -209,10 +212,11 @@ class EditRunner(shells.ShellRunner):
 
 def edit(
     pdf: wrappers.PDFWrapper,
-    commands: list[str] | None = None
+    commands: list[str] | None = None,
+    open_pdf: bool = True
 ):
     edit_shell = shells.Shell(
-        runner = EditRunner(pdf)
+        runner = EditRunner(pdf, open_pdf = open_pdf)
     )
 
     edit_shell.run(commands)

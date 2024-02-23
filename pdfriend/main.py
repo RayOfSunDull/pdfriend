@@ -180,7 +180,7 @@ def run_pdfriend(args):
             if import_file is not None:
                 import_args = cmdparsers.to_shell_import(import_file)
 
-            commands.edit(pdf, import_args)
+            commands.edit(pdf, commands = import_args, open_pdf = Config.OpenPDFs)
         elif short == "i":
             pdf = cmd_parser.next_pdf("filename")
 

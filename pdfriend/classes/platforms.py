@@ -1,6 +1,7 @@
 import platformdirs
 import pathlib
 import shutil
+import subprocess
 import platform
 import os
 
@@ -37,9 +38,9 @@ class Platform:
     def OpenFile(self, filename: str):
         sys = platform.system()
         if sys == "Linux":
-            subprocess.run(["xdg-open", filename])
+            subprocess.Popen(["xdg-open", filename])
         elif sys == "Darwin":
-            subprocess.run(["open", filename])
+            subprocess.Popen(["open", filename])
         elif sys == "Windows":
             os.startfile(filename)
 
