@@ -1,9 +1,11 @@
 # Simple command line PDF editor
 
-`pdfriend` is a simple command line program for editing PDF files at the page level (meaning it's able to manipulate pages, but not the content of said pages). It can, among other things:
+`pdfriend` is a simple command line program for editing PDF files at the page level. It can, among other things:
 
 - merge many PDFs, PNGs and JPGs into a single PDF
 - split a PDF into different parts
+- exctract images from PDFs
+- select pages from a PDF
 - rotate PDF pages
 - delete PDF pages
 - change the order of pages in a PDF

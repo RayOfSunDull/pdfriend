@@ -61,6 +61,15 @@ program_info = info.ProgramInfo(
             pdfriend edit fried.pdf -I some_commands.txt
                 executes the commands in some_commands.txt and immediately exits the edit shell
     """),
+    info.CommandInfo("tinker", "t", descr = """ [filename] [-I|--import command_file?]
+        edit the selected file page by page. Currently there is only the ability to show and export images
+
+        examples:
+            pdfriend tinker notes.pdf
+                launches the tinker shell on notes.pdf
+            pdfriend tinker fried.pdf -I some_commands.txt
+                executes the commands in some_commands.txt and immediately exits the tinker shell
+    """),
     info.CommandInfo("invert", "i", descr = """ [filename] [-o|--outfile outfile?=pdfriend_output.pdf] [-i|--inplace?]
         create a PDF file with the pages of the input file, but in inverted order. Adding -i or --inplace will make it so the input file is modified, instead of creating a new one.
 
@@ -123,7 +132,7 @@ program_info = info.ProgramInfo(
             pdfriend decrypt acct.pdf
                 decrypts acct.pdf and saves to pdfriend_output.pdf.
     """),
-    info.CommandInfo("metadata", "meta", descr = """ [filename] [--get key?] [--set key_val_pairs?] [--pop keys?]
+    info.CommandInfo("metadata", "M", descr = """ [filename] [--get key?] [--set key_val_pairs?] [--pop keys?]
         manages PDF metadata. Using no extra flags, it will print the key-value pairs. You can use --get to print the value of a specific key and --set to set values for keys, or --pop to delete them.
 
         examples:
@@ -181,6 +190,17 @@ def run_pdfriend(args):
                 import_args = cmdparsers.to_shell_import(import_file)
 
             commands.edit(pdf, commands = import_args, open_pdf = Config.OpenPDFs)
+        elif short == "t":
+            pdf = cmd_parser.next_pdf("filename")
+
+            # I have to do this because args.import is a syntax error
+            # for some reason. Must be messing with the import keyword?
+            import_file = args.__getattribute__("import")
+            import_args = None
+            if import_file is not None:
+                import_args = cmdparsers.to_shell_import(import_file)
+
+            commands.tinker(pdf, commands = import_args, open_pdf = Config.OpenPDFs)
         elif short == "i":
             pdf = cmd_parser.next_pdf("filename")
 

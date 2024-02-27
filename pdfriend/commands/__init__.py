@@ -2,6 +2,7 @@ from pdfriend.commands.version import version
 from pdfriend.commands.merge import merge
 from pdfriend.commands.invert import invert
 from pdfriend.commands.edit import edit
+from pdfriend.commands.tinker import tinker
 from pdfriend.commands.cache import cache
 from pdfriend.commands.weave import weave
 from pdfriend.commands.split import split
