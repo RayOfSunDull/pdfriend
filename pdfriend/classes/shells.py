@@ -29,6 +29,10 @@ class ShellRunner(ABC):
     def save(self):
         pass
 
+    @abstractmethod
+    def exit(self):
+        pass
+
 
 class Shell:
     def __init__(self, runner: ShellRunner):
@@ -64,6 +68,7 @@ class Shell:
             try:
                 self.run_command(arg_str)
             except (KeyboardInterrupt, exceptions.ShellExit):
+                self.runner.exit()
                 return
             except exceptions.ShellContinue:
                 continue

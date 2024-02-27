@@ -209,6 +209,9 @@ class EditRunner(shells.ShellRunner):
     def save(self):
         self.pdf.write()
 
+    def exit(self):
+        pass
+
 
 def edit(
     pdf: wrappers.PDFWrapper,
