@@ -21,5 +21,5 @@ def split(
     for i, (lower, upper) in enumerate(zip(
         split_indices[:-1], split_indices[1:]
     )):
-        pdf_slice = wrappers.PDFWrapper(pdf.pages[(lower-1):(upper-1)])
+        pdf_slice = wrappers.PDFWrapper(pages = pdf.pages[(lower-1):(upper-1)])
         pdf_slice.write(f"{outfile}-{i:0{ndigits}}.pdf")

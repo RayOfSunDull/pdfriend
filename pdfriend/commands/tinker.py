@@ -178,8 +178,15 @@ class TinkerRunner(shells.ShellRunner):
             self.current_page_num = page_num
         elif short == "ls":
             self.raise_if_no_page()
+            subcommand = cmd_parser.next_str_or(None, name = "subcommand")
+            long = subcommand == "-l"
+
             for image in self.current_page().images:
-                print(image.name)
+                extra = ""
+                if long:
+                    extra = f"    {len(image.data) / 1000} KB"
+
+                print(f"{image.name}{extra}")
 
             raise exceptions.ShellContinue()
         elif short == "s":
@@ -204,6 +211,8 @@ class TinkerRunner(shells.ShellRunner):
         self.pdf.reread(self.backup_path)
 
     def save(self):
+        if self.current_page_pdf is None:
+            return
         self.pdf[self.current_page_num] = self.current_page()
         self.current_page_pdf.write()
 

@@ -1,6 +1,7 @@
 import pypdf
 import datetime
 import pathlib
+import shutil
 import pdfriend.classes.exceptions as exceptions
 from typing import Self
 from PIL import Image
@@ -10,11 +11,13 @@ class PDFWrapper:
     def __init__(self,
         source: pathlib.Path = None,
         pages: list[pypdf.PageObject] = None,
-        metadata: pypdf.DocumentInformation = None
+        metadata: pypdf.DocumentInformation = None,
+        reader: pypdf.PdfReader = None,
     ):
         self.source = source
         self.pages = pages or []
         self.metadata = metadata
+        self.reader = reader
         if metadata is not None:
             self.metadata = dict(metadata)
 
@@ -31,7 +34,8 @@ class PDFWrapper:
         return PDFWrapper(
             source = pathlib.Path(filename),
             pages = list(pdf.pages),
-            metadata = pdf.metadata
+            metadata = pdf.metadata,
+            reader = pdf,
         )
 
     def reread(self, source: pathlib.Path, keep_metadata: bool = True):
@@ -143,8 +147,11 @@ class PDFWrapper:
 
     def to_writer(self):
         writer = pypdf.PdfWriter()
-        for page in self.pages:
-            writer.add_page(page)
+        if self.reader is not None and False: # FIXME
+            writer.clone_document_from_reader(self.reader)
+        else:
+            for page in self.pages:
+                writer.add_page(page)
 
         return writer
 
@@ -160,7 +167,7 @@ class PDFWrapper:
             pathlib.Path(filename).with_suffix(".pdf")
         )
 
-    def backup(self, name: str | pathlib.Path = None) -> pathlib.Path:
+    def backup(self, name: str | pathlib.Path = None, copy: bool = True) -> pathlib.Path:
         if name is None:
             name = self.source
 
@@ -172,7 +179,11 @@ class PDFWrapper:
             f"{name.stem}_{now}.pdf"
         )
 
-        self.write(backup_file)
+        # prefer to just copy the file from the source if possible
+        if copy and self.source.is_file():
+            shutil.copyfile(self.source, backup_file)
+        else:
+            self.write(backup_file)
 
         return backup_file
 
