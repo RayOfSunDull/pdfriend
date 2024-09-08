@@ -1,8 +1,5 @@
 from helpers.file_existence import check_one_output_command
 from helpers.managers import FileManager
-from helpers.model_documents import ModelPDF
-from pathlib import Path
-
 
 fm = FileManager.New()
 

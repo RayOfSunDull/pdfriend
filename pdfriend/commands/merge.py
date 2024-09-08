@@ -50,11 +50,11 @@ def merge(globs: list[str], outfile: str, quality: int):
                 pdf = images_to_pdf_wrapper(buffer, quality)
                 buffer = []
 
-                final_pdf.merge_with(pdf)
+                final_pdf.pages_merge(pdf)
 
             if extension == ".pdf":
                 pdf = wrappers.PDFWrapper.Read(filename)
-                final_pdf.merge_with(pdf)
+                final_pdf.pages_merge(pdf)
 
             # note that if it's neither image nor a pdf, it is ignored
 
@@ -62,11 +62,11 @@ def merge(globs: list[str], outfile: str, quality: int):
         # this is for efficiency, in case all files are images: otherwise
         # backend.images_to_df_wrapper would write the pdf, read it, delete it
         # and then final_pdf.write would write it again. Instead we just write
-        if final_pdf.len() == 0:
+        if final_pdf.pages_len() == 0:
             images_to_pdf(buffer, outfile, quality)
             return
 
         pdf = images_to_pdf_wrapper(buffer, quality)
-        final_pdf.merge_with(pdf)
+        final_pdf.pages_merge(pdf)
 
     final_pdf.write(outfile)

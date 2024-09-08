@@ -6,9 +6,12 @@ import pdfriend.classes.exceptions as exceptions
 from typing import Self
 from PIL import Image
 from pdfriend.classes.platforms import Platform
+from pdfriend.ops.pages import PageContainer
 
-class PDFWrapper:
-    def __init__(self,
+
+class PDFWrapper(PageContainer):
+    def __init__(
+        self,
         source: pathlib.Path = None,
         pages: list[pypdf.PageObject] = None,
         metadata: pypdf.DocumentInformation = None,
@@ -21,11 +24,11 @@ class PDFWrapper:
         if metadata is not None:
             self.metadata = dict(metadata)
 
-    def __getitem__(self, num: int) -> pypdf.PageObject:
-        return self.pages[num - 1]
+    def get_pages(self) -> list[pypdf.PageObject]:
+        return self.pages
 
-    def __setitem__(self, num: int, page: pypdf.PageObject):
-        self.pages[num - 1] = page
+    def set_pages(self, pages: list[pypdf.PageObject]) -> Self:
+        self.pages = pages
 
     @classmethod
     def Read(cls, filename: str):
@@ -46,48 +49,6 @@ class PDFWrapper:
 
         return self
 
-    def len(self):
-        return len(self.pages)
-
-    def slice(self, slice_str: str) -> list[int]:
-        if slice_str == "all":
-            return list(range(1, self.len()))
-
-        result = []
-        for subslice in slice_str.split(","):
-            if ":" not in subslice:
-                page_num = int(subslice)
-                if page_num < 1 or page_num > self.len():
-                    continue
-
-                result.append(page_num)
-                continue
-
-            split_subslice = subslice.split(":")
-            first, last = split_subslice[0], split_subslice[-1]
-
-            # such that n: means n:end and :n means 1:n
-            first = 1 if first == "" else int(first)
-            last = self.len() if last == "" else int(last)
-
-            # making sure the subrange is within bounds
-            lower = max(min(first, last), 1)
-            upper = min(max(first, last), self.len())
-
-            result.extend(list(range(lower, upper + 1)))
-
-        return sorted(list(set(result)))
-
-    def subset(self, slice: str | list[str]) -> Self:
-        if isinstance(slice, str):
-            slice = self.slice(slice)
-
-        return PDFWrapper(
-            source = self.source,
-            pages = [self.pages[idx - 1] for idx in slice],
-            metadata = self.metadata
-        )
-
     def raise_if_out_of_range(self, page_num: int):
         if page_num >= 1 and page_num <= self.len():
             return
@@ -95,59 +56,9 @@ class PDFWrapper:
             f"page {page_num} doesn't exist in the PDF (total pages: {self.len()})"
         )
 
-    def rotate_page(self, page_num: int, angle: float) -> Self:
-        int_angle = int(angle)
-        if int_angle % 90 == 0:
-            self[page_num].rotate(int_angle)
-            return self
-
-        rotation = pypdf.Transformation().rotate(angle)
-        self[page_num].add_transformation(rotation)
-        return self
-
-    def pop_page(self, page_num: int) -> pypdf.PageObject:
-        return self.pages.pop(page_num - 1)
-
-    def append_page(self, page: pypdf.PageObject) -> Self:
-        self.pages.append(page)
-        return self
-
-    def extend(self, pages: list[pypdf.PageObject]) -> Self:
-        self.pages.extend(pages)
-        return self
-
-    def swap_pages(self, page_num_0: int, page_num_1: int) -> Self:
-        temp = self[page_num_0]
-        self[page_num_0] = self[page_num_1]
-        self[page_num_1] = temp
-
-        return self
-
-    def merge_with(self, other: Self) -> Self:
-        self.pages.extend(other.pages)
-
-        return self
-
-    def invert(self) -> Self:
-        self.pages = self.pages[::-1]
-
-        return self
-
-    def weave_with(self, other: Self) -> Self:
-        result = PDFWrapper()
-        for odd_page, even_page in zip(self.pages, other.pages):
-            result.extend([odd_page, even_page])
-
-        if self.len() > other.len():
-            result.extend(self.pages[other.len():])
-        elif other.len() > self.len():
-            result.extend(other.pages[self.len():])
-
-        return result
-
     def to_writer(self):
         writer = pypdf.PdfWriter()
-        if self.reader is not None and False: # FIXME
+        if self.reader is not None and False:  # FIXME
             writer.clone_document_from_reader(self.reader)
         else:
             for page in self.pages:

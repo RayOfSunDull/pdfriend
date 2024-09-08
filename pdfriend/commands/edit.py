@@ -3,6 +3,7 @@ import pdfriend.classes.exceptions as exceptions
 import pdfriend.classes.cmdparsers as cmdparsers
 import pdfriend.classes.shells as shells
 import pdfriend.classes.info as info
+from pdfriend.ops.pdf import rotate
 from pdfriend.classes.platforms import Platform
 from pdfriend.classes.config import Config
 import pdfriend.utils as utils
@@ -150,28 +151,27 @@ class EditRunner(shells.ShellRunner):
             self.pdf.raise_if_out_of_range(pages[-1])
             self.pdf.raise_if_out_of_range(pages[0])
 
-            for page in pages:
-                self.pdf.rotate_page(page, angle)
+            self.pdf.pages_map_subset(rotate, pages, angle)
         elif short == "d":
             pages = cmd_parser.next_pdf_slice(self.pdf, "pages")
 
             for page in pages:
-                self.pdf.pop_page(page)
+                self.pdf.pages_pop(page)
         elif short == "s":
             page_0 = cmd_parser.next_int("page_0")
             self.pdf.raise_if_out_of_range(page_0)
             page_1 = cmd_parser.next_int("page_1")
             self.pdf.raise_if_out_of_range(page_1)
 
-            self.pdf.swap_pages(page_0, page_1)
+            self.pdf.pages_swap(page_0, page_1)
         elif short == "m":
             source = cmd_parser.next_int("source")
             self.pdf.raise_if_out_of_range(source)
             destination = cmd_parser.next_int("destination")
             self.pdf.raise_if_out_of_range(destination)
 
-            page = self.pdf.pages.pop(source - 1)
-            self.pdf.pages.insert(destination - 1, page)
+            page = self.pdf.pages_pop(source - 1)
+            self.pdf.pages_insert(destination - 1, page)
         elif short == "p":
             pages = cmd_parser.next_pdf_slice(self.pdf, "pages")
             offset = cmd_parser.next_int("offset")
@@ -179,7 +179,8 @@ class EditRunner(shells.ShellRunner):
             last_page_before = pages[-1]
             last_page_after = last_page_before + offset
 
-            if last_page_after > self.pdf.len(): # only check last page, as the slice is sorted
+            # only check last page, as the slice is sorted
+            if last_page_after > self.pdf.pages_len():
                 raise exceptions.ExpectedError(
                     f"can't move page {last_page_before} to {last_page_after}, as it's outside the PDF (number of pages: {self.pdf.len()})"
                 )
@@ -188,13 +189,13 @@ class EditRunner(shells.ShellRunner):
                 pages = pages[::-1]
 
             for page in pages:
-                p = self.pdf.pages.pop(page - 1)
-                self.pdf.pages.insert(page + offset - 1, p)
+                p = self.pdf.pages_pop(page - 1)
+                self.pdf.pages_insert(page + offset - 1, p)
         elif short == "u":
             # arg will be converted to int, unless it's "all". Defaults to 1
             num_of_commands = cmd_parser.next_typed_or(
                 "int or \"all\"", lambda s: s if s == "all" else int(s),
-                1 # default value
+                1  # default value
             )
 
             raise exceptions.ShellUndo(num_of_commands)
@@ -223,4 +224,3 @@ def edit(
     )
 
     edit_shell.run(commands)
-

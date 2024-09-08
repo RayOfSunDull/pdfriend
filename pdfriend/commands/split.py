@@ -2,6 +2,7 @@ import pdfriend.classes.wrappers as wrappers
 import pdfriend.classes.platforms as platforms
 import pathlib
 
+
 def split(
     pdf: wrappers.PDFWrapper,
     split_indices: list[int],
@@ -9,8 +10,10 @@ def split(
 ):
     if 1 not in split_indices:
         split_indices = [1] + split_indices
-    if pdf.len() not in split_indices:
-        split_indices.append(pdf.len())
+    if pdf.pages_len() in split_indices:
+        split_indices[-1] = pdf.pages_len() + 1
+    if pdf.pages_len() not in split_indices:
+        split_indices.append(pdf.pages_len() + 1)
 
     outdir_path = pathlib.Path(outdir)
     platforms.ensuredir(outdir_path)

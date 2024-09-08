@@ -165,7 +165,7 @@ class CmdParser:
             return default
 
     def next_pdf_slice(self, pdf: wrappers.PDFWrapper, name: str | None = None) -> list[int]:
-        return self.next_typed("PDF slice", lambda s: pdf.slice(s), name = name)
+        return self.next_typed("PDF slice", lambda s: pdf.pages_view(s), name = name)
 
     def next_pdf_slice_or(self, pdf: wrappers.PDFWrapper, default: list[int], name: str | None = None) -> list[int]:
         try:
@@ -180,7 +180,6 @@ class CmdParser:
             to_file(head, name, err_message = f"\n{self.loc_str(name)}"),
             tail
         )
-
 
     def next_file_or(self, default: pathlib.Path, name: str | None = None) -> pathlib.Path:
         try:

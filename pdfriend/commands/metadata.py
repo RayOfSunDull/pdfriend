@@ -1,6 +1,7 @@
 import pdfriend.classes.wrappers as wrappers
 import pdfriend.classes.exceptions as exceptions
 
+
 def metadata(
     pdf: wrappers.PDFWrapper,
     get: str | None = None,
@@ -31,8 +32,6 @@ def metadata(
         for key in keys_to_pop:
             del pdf.metadata[key]
 
-        pdf.write(infile)
+        pdf.write()
     else:
         print("\n".join([f"{key}: {val}" for key, val in pdf.metadata.items()]))
-
-
