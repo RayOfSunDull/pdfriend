@@ -47,6 +47,7 @@ def to_shell_import(input: str, name: str | None = None, err_message = "") -> li
             f"could not read commands from file {input}{err_message}"
         )
 
+
 class CmdParser:
     def __init__(self, cmd_info: str, args: list[str]):
         self.cmd_info = cmd_info

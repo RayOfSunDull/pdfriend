@@ -1,19 +1,37 @@
-[tool.poetry]
-name = "pdfriend"
-version = "0.7.1"
-description = "A command line utility for easily modifying PDF files"
-authors = ["A. Grigoras"]
-license = "GPL-3.0-or-later"
-readme = "README.md"
-scripts = { "pdfriend" = "pdfriend.main:main" }
-
-[tool.poetry.dependencies]
-python = "^3.11"
-setuptools = "^65.5.1"
-pypdf = "^3.17.3"
-Pillow = "^10.1.0"
-platformdirs = "^4.1.0"
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools >= 65.5.1"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = [
+    "pdfriend",
+    "pdfriend.ops",
+    "pdfriend.classes",
+    "pdfriend.commands",
+]
+
+[project.scripts]
+pdfriend = "pdfriend.main:main"
+
+[project]
+name = "pdfriend"
+version = "0.8.0"
+authors = [
+    {name = "A. Grigoras"},
+]
+description = "A command line utility for easily modifying PDF files"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pypdf        >= 3.17.3",
+    "pillow       >= 10.1.0",
+    "platformdirs >= 4.1.0",
+]

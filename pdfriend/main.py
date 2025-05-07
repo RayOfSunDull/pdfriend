@@ -1,4 +1,5 @@
 import argparse
+import traceback
 from pdfriend.classes.config import Config
 from pdfriend.classes.platforms import Platform
 import pdfriend.classes.cmdparsers as cmdparsers
@@ -249,10 +250,13 @@ def run_pdfriend(args):
 
             commands.metadata(pdf, args.get, args.set, args.pop)
         else:
-            print(f"command \"{command}\" not recognized")
+            print(f"command \"{cmd_parser.name()}\" not recognized")
             print("use pdfriend help for a list of the available commands")
     except exceptions.ExpectedError as e:
-        print(e)
+        if Config.Debug:
+            print(traceback.format_exc())
+        else:
+            print(e)
     except Exception as e:
         utils.print_unexpected_exception(e, Config.Debug)
 

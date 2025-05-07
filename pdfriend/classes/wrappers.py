@@ -1,18 +1,20 @@
 import pypdf
-import datetime
-import pathlib
 import shutil
-import pdfriend.classes.exceptions as exceptions
-from typing import Self
+import datetime
 from PIL import Image
-from pdfriend.classes.platforms import Platform
-from pdfriend.ops.pages import PageContainer
+from typing import Self
+from pathlib import Path
+from zipfile import ZipFile
+
+from .platforms import Platform
+from .exceptions import ExpectedError
+from ..ops.pages import PageContainer
 
 
 class PDFWrapper(PageContainer):
     def __init__(
         self,
-        source: pathlib.Path = None,
+        source: Path = None,
         pages: list[pypdf.PageObject] = None,
         metadata: pypdf.DocumentInformation = None,
         reader: pypdf.PdfReader = None,
@@ -35,13 +37,13 @@ class PDFWrapper(PageContainer):
         pdf = pypdf.PdfReader(filename)
 
         return PDFWrapper(
-            source = pathlib.Path(filename),
+            source = Path(filename),
             pages = list(pdf.pages),
             metadata = pdf.metadata,
             reader = pdf,
         )
 
-    def reread(self, source: pathlib.Path, keep_metadata: bool = True):
+    def reread(self, source: Path, keep_metadata: bool = True):
         new_pdf = PDFWrapper.Read(source)
         self.pages = new_pdf.pages
         if not keep_metadata:
@@ -52,7 +54,7 @@ class PDFWrapper(PageContainer):
     def raise_if_out_of_range(self, page_num: int):
         if page_num >= 1 and page_num <= self.len():
             return
-        raise exceptions.ExpectedError(
+        raise ExpectedError(
             f"page {page_num} doesn't exist in the PDF (total pages: {self.len()})"
         )
 
@@ -75,18 +77,18 @@ class PDFWrapper(PageContainer):
             writer.add_metadata(self.metadata)
 
         writer.write(
-            pathlib.Path(filename).with_suffix(".pdf")
+            Path(filename).with_suffix(".pdf")
         )
 
-    def backup(self, name: str | pathlib.Path = None, copy: bool = True) -> pathlib.Path:
+    def backup(self, name: str | Path = None, copy: bool = True) -> Path:
         if name is None:
             name = self.source
 
-        if not isinstance(name, pathlib.Path):
-            name = pathlib.Path(name)
+        if not isinstance(name, Path):
+            name = Path(name)
 
         now: str = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
-        backup_file: pathlib.Path = Platform.NewBackup(
+        backup_file: Path = Platform.NewBackup(
             f"{name.stem}_{now}.pdf"
         )
 
@@ -97,6 +99,15 @@ class PDFWrapper(PageContainer):
             self.write(backup_file)
 
         return backup_file
+
+
+def open_image(file: str|Path) -> Image:
+    path = Path(file)
+    if path.suffix == ".kra":
+        with ZipFile(path, "r") as krita_file:
+            return Image.open(krita_file.open("mergedimage.png", "r"))
+    else:
+        return Image.open(file)
 
 
 def convert_to_rgb(img_rgba: Image.Image):
@@ -118,7 +129,7 @@ class ImageWrapper:
 
     @classmethod
     def FromFiles(cls, filenames: list[str]) -> Self:
-        return ImageWrapper([Image.open(filename) for filename in filenames])
+        return ImageWrapper([open_image(filename) for filename in filenames])
 
     def equalize_widths(self):
         max_width = max([image.size[0] for image in self.images])

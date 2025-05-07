@@ -33,15 +33,14 @@ def _get_view(expr: str, min_idx: int, max_idx: int) -> list[int]:
             idx = _normalized_idx(int(subexpr), min_idx, max_idx)
             if idx is not None:
                 result.append(idx)
-            continue
+        else:
+            idx_0, idx_1 = subexpr.split(":")
 
-        idx_0, idx_1 = subexpr.split(":")
+            # such that n: means n:max and :n means min:n
+            idx_0 = min_idx if idx_0 == "" else int(idx_0)
+            idx_1 = max_idx if idx_1 == "" else int(idx_1)
 
-        # such that n: means n:max and :n means min:n
-        idx_0 = min_idx if idx_0 == "" else int(idx_0)
-        idx_1 = max_idx if idx_1 == "" else int(idx_1)
-
-        result.extend(_normalized_range(idx_0, idx_1, min_idx, max_idx))
+            result.extend(_normalized_range(idx_0, idx_1, min_idx, max_idx))
 
     return result
 
@@ -155,11 +154,11 @@ class PageContainer(ABC):
         ])
         return self
 
-    def pages_view(self, expr: str, offset = 1) -> list[int]:
-        result = _get_view(self.get_pages(), offset, self.pages_len())
+    def pages_view(self, expr: str, offset = 0) -> list[int]:
+        result = _get_view(expr, offset, self.pages_len())
         return [idx - offset for idx in result]
 
-    def pages_slice(self, expr: str, offset = 1) -> Self:
+    def pages_slice(self, expr: str, offset = 0) -> Self:
         return self.pages_subset(self.pages_view(expr, offset = offset))
 
     def pages_map(self, func, *args, **kwargs) -> Self:

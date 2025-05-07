@@ -1,3 +1,4 @@
+import shutil
 from typing import Self
 from helpers.model_documents import ModelPDF
 from pathlib import Path
@@ -19,12 +20,17 @@ class FileManager:
 
     def delete_all(self):
         for file in self.files:
-            if file.exists():
+            if file.is_file():
                 file.unlink()
+            elif file.is_dir():
+                shutil.rmtree(file)
 
     def new_pdf(self, file: str|Path, pages: list[int]) -> ModelPDF:
         result = ModelPDF.New(pages)
         result.save(file)
         self.register(file)
-
         return result
+
+    def read_pdf(self, file: str|Path) -> ModelPDF:
+        self.register(file)
+        return ModelPDF.Read(file)

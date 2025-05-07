@@ -4,3 +4,4 @@ test
 init.sh
 dist
 *__pycache__
+*.egg-info

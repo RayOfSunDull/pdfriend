@@ -8,12 +8,12 @@ def split(
     split_indices: list[int],
     outdir: str
 ):
-    if 1 not in split_indices:
-        split_indices = [1] + split_indices
+    if 0 not in split_indices:
+        split_indices = [0] + split_indices
     if pdf.pages_len() in split_indices:
-        split_indices[-1] = pdf.pages_len() + 1
+        split_indices[-1] = pdf.pages_len()
     if pdf.pages_len() not in split_indices:
-        split_indices.append(pdf.pages_len() + 1)
+        split_indices.append(pdf.pages_len())
 
     outdir_path = pathlib.Path(outdir)
     platforms.ensuredir(outdir_path)
@@ -24,5 +24,5 @@ def split(
     for i, (lower, upper) in enumerate(zip(
         split_indices[:-1], split_indices[1:]
     )):
-        pdf_slice = wrappers.PDFWrapper(pages = pdf.pages[(lower-1):(upper-1)])
+        pdf_slice = wrappers.PDFWrapper(pages = pdf.pages[lower:upper])
         pdf_slice.write(f"{outfile}-{i:0{ndigits}}.pdf")

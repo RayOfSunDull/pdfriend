@@ -5,6 +5,7 @@ import subprocess
 import platform
 import os
 
+
 def ensuredir(path: pathlib.Path):
     if not path.exists():
         path.mkdir()
@@ -17,12 +18,12 @@ class Platform:
     BackupDir: pathlib.Path = CacheDir.joinpath("backups")
 
     @classmethod
-    def Init(cls): # make sure the system directories exist
+    def Init(cls):  # make sure the system directories exist
         ensuredir(cls.ConfigDir)
         ensuredir(cls.CacheDir)
         ensuredir(cls.BackupDir)
 
-        if cls.TempDir.exists(): # temp dir always cleared on startup
+        if cls.TempDir.exists():  # temp dir always cleared on startup
             shutil.rmtree(cls.TempDir.as_posix())
         cls.TempDir.mkdir()
 
@@ -43,4 +44,3 @@ class Platform:
             subprocess.Popen(["open", filename])
         elif sys == "Windows":
             os.startfile(filename)
-

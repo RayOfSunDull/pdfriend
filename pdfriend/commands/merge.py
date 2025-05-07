@@ -3,7 +3,12 @@ import os
 import pdfriend.classes.wrappers as wrappers
 from pdfriend.classes.platforms import Platform
 
-IMAGE_FORMATS = {".png", ".jpg"}
+IMAGE_FORMATS = {
+    ".png", ".jpg", ".jpeg", ".jpe", "jfif",
+    ".j2c", ".j2k", ".jp2", ".jpc", ".jpf", ".jpx",
+    ".webp", ".bmp", ".eps", ".ps",
+    ".kra"  # we can extract images from krita files
+}
 
 
 # expands all globs in list: can contain both patterns and single filenames,
