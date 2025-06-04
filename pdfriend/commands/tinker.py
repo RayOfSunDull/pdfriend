@@ -4,11 +4,8 @@ import pdfriend.classes.cmdparsers as cmdparsers
 import pdfriend.classes.shells as shells
 import pdfriend.classes.info as info
 from pdfriend.classes.platforms import Platform
-from pdfriend.classes.config import Config
-from pypdf._utils import ImageFile
 import pdfriend.utils as utils
 import pathlib
-from pprint import pprint
 
 program_info = info.ProgramInfo(
     info.CommandInfo("help", "h", descr = """[command?]
@@ -123,7 +120,7 @@ class TinkerRunner(shells.ShellRunner):
         if output_path is None:
             output_path = Platform.NewTemp(obj.name)
 
-        if isinstance(obj, ImageFile):
+        if hasattr(obj, "data"):
             with open(output_path, "wb") as outfile:
                 outfile.write(obj.data)
 
@@ -232,4 +229,3 @@ def tinker(
     )
 
     tinker_shell.run(commands)
-

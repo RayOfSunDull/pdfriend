@@ -282,7 +282,6 @@ def main():
     args = parser.parse_args()
 
     Platform.Init()
-    Config.Debug = args.debug
+    Config.Init(args.debug)
 
     run_pdfriend(args)
-

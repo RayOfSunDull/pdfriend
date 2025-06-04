@@ -15,7 +15,7 @@ pdfriend = "pdfriend.main:main"
 
 [project]
 name = "pdfriend"
-version = "0.8.0"
+version = "0.8.1"
 authors = [
     {name = "A. Grigoras"},
 ]

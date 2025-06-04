@@ -6,6 +6,7 @@ import pathlib
 import re
 from typing import Self
 
+
 def to_typed(input: str, type_name: str, type_converter, name: str | None = None, err_message = ""):
     try:
         return type_converter(input)
@@ -13,6 +14,7 @@ def to_typed(input: str, type_name: str, type_converter, name: str | None = None
         raise exceptions.ExpectedError(
             f"value \"{input}\" could not be converted to type \"{type_name}\"{err_message}"
         )
+
 
 def to_file(input: str, name: str | None = None, err_message = "") -> pathlib.Path:
     file_path = pathlib.Path(input)
@@ -23,13 +25,14 @@ def to_file(input: str, name: str | None = None, err_message = "") -> pathlib.Pa
 
     return file_path
 
+
 def to_pdf(input: str, name: str | None = None, err_message = "") -> wrappers.PDFWrapper:
     file_path = to_file(input, err_message = err_message)
 
     try:
         return wrappers.PDFWrapper.Read(file_path)
     except Exception as e:
-        debug_message = "\nadditional info:\n{e}" if Config.Debug else ""
+        debug_message = f"\nadditional info:\n{e}" if Config.Debug else ""
         raise exceptions.ExpectedError(
             f"file \"{file_path}\" could not be read as PDF{err_message}{debug_message}"
         )
@@ -201,4 +204,3 @@ class CmdParser:
             return self.next_pdf(name = name)
         except Exception:
             return default
-

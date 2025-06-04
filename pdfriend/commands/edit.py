@@ -5,9 +5,7 @@ import pdfriend.classes.shells as shells
 import pdfriend.classes.info as info
 from pdfriend.ops.pdf import rotate
 from pdfriend.classes.platforms import Platform
-from pdfriend.classes.config import Config
 import pdfriend.utils as utils
-import pathlib
 
 
 program_info = info.ProgramInfo(

@@ -154,11 +154,11 @@ class PageContainer(ABC):
         ])
         return self
 
-    def pages_view(self, expr: str, offset = 0) -> list[int]:
+    def pages_view(self, expr: str, offset = 1) -> list[int]:
         result = _get_view(expr, offset, self.pages_len())
         return [idx - offset for idx in result]
 
-    def pages_slice(self, expr: str, offset = 0) -> Self:
+    def pages_slice(self, expr: str, offset = 1) -> Self:
         return self.pages_subset(self.pages_view(expr, offset = offset))
 
     def pages_map(self, func, *args, **kwargs) -> Self:
