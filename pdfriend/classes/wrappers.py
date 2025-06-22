@@ -52,10 +52,10 @@ class PDFWrapper(PageContainer):
         return self
 
     def raise_if_out_of_range(self, page_num: int):
-        if page_num >= 1 and page_num <= self.len():
+        if page_num >= 0 and page_num <= self.pages_len() - 1:
             return
         raise ExpectedError(
-            f"page {page_num} doesn't exist in the PDF (total pages: {self.len()})"
+            f"page {page_num} doesn't exist in the PDF (total pages: {self.pages_len()})"
         )
 
     def to_writer(self):

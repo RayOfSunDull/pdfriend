@@ -1,6 +1,6 @@
 .venv
 legacy
-test
+tests/custom
 init.sh
 dist
 *__pycache__

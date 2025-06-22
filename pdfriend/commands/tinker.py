@@ -1,19 +1,25 @@
+import pathlib
+from enum import Enum
+from typing import Iterator
+from abc import ABC, abstractmethod
+
 import pdfriend.classes.wrappers as wrappers
 import pdfriend.classes.exceptions as exceptions
 import pdfriend.classes.cmdparsers as cmdparsers
 import pdfriend.classes.shells as shells
 import pdfriend.classes.info as info
-from pdfriend.classes.platforms import Platform
 import pdfriend.utils as utils
-import pathlib
+from ..classes.platforms import Platform
+from ..classes.config import Config
+
 
 program_info = info.ProgramInfo(
     info.CommandInfo("help", "h", descr = """[command?]
     display help message. If given a command, it will only display the help message for that command.
 
     examples:
-        help rotate
-            displays the help blurb for the rotate command
+        help list
+            displays the help blurb for the list command
         help exit
             displays the help blurb for the exit command
     """),
@@ -47,8 +53,8 @@ program_info = info.ProgramInfo(
             p 2
                 focuses on page 2
     """),
-    info.CommandInfo("list", "ls", descr = """
-    lists objects on the current focused page (currently only works with images)
+    info.CommandInfo("list", "ls", descr = """[-l]
+    lists objects on the current focused page. Use the -l flag to display additional information.
 
         examples:
             ls
@@ -72,9 +78,50 @@ program_info = info.ProgramInfo(
             w Im7.png image.png
                 writes Im7.png to ./image.png
     """),
-    foreword = "pdfriend edit shell for quick changes. Commands:",
+    foreword = "pdfriend tinker shell for quick in-page changes. Currently, only image manipulation is supported. Commands:",
     postword = "use h [command] to learn more about a specific command"
 )
+
+
+class DocObjectKind(Enum):
+    IMAGE = "image"
+
+
+class DocObject(ABC):
+    @abstractmethod
+    def name(self) -> str:
+        pass
+
+    @abstractmethod
+    def kind(self) -> DocObjectKind:
+        pass
+
+    @abstractmethod
+    def show(self):
+        pass
+
+    @abstractmethod
+    def data(self) -> bytes:
+        pass
+
+
+class ImageDocObject(DocObject):
+    def __init__(self, obj):
+        self._obj = obj
+
+    def name(self) -> str:
+        return self._obj.name
+
+    def kind(self) -> DocObjectKind:
+        return DocObjectKind.IMAGE
+
+    def show(self):
+        temp_path = Platform.NewTemp(self._obj.name)
+        temp_path.write_bytes(self.data())
+        Platform.OpenFile(temp_path)
+
+    def data(self) -> bytes:
+        return self._obj.data
 
 
 class TinkerRunner(shells.ShellRunner):
@@ -95,7 +142,7 @@ class TinkerRunner(shells.ShellRunner):
             Platform.OpenFile(pdf.source)
 
     def current_page(self):
-        return self.current_page_pdf[1]
+        return self.current_page_pdf.pages_get(0)
 
     def raise_if_no_page(self):
         if self.current_page_pdf is None:
@@ -103,27 +150,30 @@ class TinkerRunner(shells.ShellRunner):
                 "no page selected! Use page [page_number] to select a page."
             )
 
-    def get_object(self, obj_name):
-        objects = [
-            obj for obj in self.current_page().images
-            if obj.name == obj_name
-        ]
-        if len(objects) == 0:
-            raise exceptions.ExpectedError(
-                f"No object named {obj_name} in page {self.current_page_num}"
-            )
-        if len(objects) > 1:
-            print(f"warning: more than one object named {obj_name} in page {self.current_page_num}")
-        return objects[0]
+    def iter_objects(self) -> Iterator[DocObject]:
+        iter = self.current_page().images.__iter__()
+        while True:
+            try:
+                yield ImageDocObject(next(iter))
+            except Exception as e:
+                if Config.Debug:
+                    print(f"Failed to list objects: {e}")
+                break
 
-    def write_object(self, obj, output_path: pathlib.Path | None = None):
+    def get_object(self, obj_name: str) -> DocObject:
+        for obj in self.iter_objects():
+            if obj.name() == obj_name:
+                return obj
+
+        raise exceptions.ExpectedError(
+            f"No object named {obj_name} in page {self.current_page_num}"
+        )
+
+    def write_object(self, obj: DocObject, output_path: pathlib.Path | None = None):
         if output_path is None:
-            output_path = Platform.NewTemp(obj.name)
+            output_path = Platform.NewTemp(obj.name())
 
-        if hasattr(obj, "data"):
-            with open(output_path, "wb") as outfile:
-                outfile.write(obj.data)
-
+        output_path.write_bytes(obj.data())
         return output_path
 
     def parse(self, arg_str) -> list[str]:
@@ -155,22 +205,22 @@ class TinkerRunner(shells.ShellRunner):
 
             raise exceptions.ShellUndo(num_of_commands)
         elif short == "x":
-            filename = cmd_parser.next_str_or("pdfriend_edit.txt")
+            filename = cmd_parser.next_str_or("pdfriend_tinker.txt")
 
             raise exceptions.ShellExport(filename)
         elif short == "p":
-            page_num = cmd_parser.next_int()
+            page_num = cmd_parser.next_int() - 1
             self.pdf.raise_if_out_of_range(page_num)
 
             if self.current_page_pdf is None:
-                current_page_pdf = wrappers.PDFWrapper(pages = [self.pdf[page_num]])
+                current_page_pdf = wrappers.PDFWrapper(pages = [self.pdf.pages_get(page_num)])
                 current_page_pdf.write(self.current_page_path)
                 self.current_page_pdf = wrappers.PDFWrapper.Read(self.current_page_path)
 
                 if self.open_page:
                     Platform.OpenFile(self.current_page_path)
             else:
-                self.current_page_pdf[1] = self.pdf[page_num]
+                self.current_page_pdf.pages_set(0, self.pdf.pages_get(page_num))
 
             self.current_page_num = page_num
         elif short == "ls":
@@ -178,30 +228,28 @@ class TinkerRunner(shells.ShellRunner):
             subcommand = cmd_parser.next_str_or(None, name = "subcommand")
             long = subcommand == "-l"
 
-            for image in self.current_page().images:
+            for obj in self.iter_objects():
                 extra = ""
                 if long:
-                    extra = f"    {len(image.data) / 1000} KB"
+                    extra = f"    {len(obj.data()) / 1000} KB"
 
-                print(f"{image.name}{extra}")
+                print(f"{obj.name()}{extra}")
 
             raise exceptions.ShellContinue()
         elif short == "s":
             self.raise_if_no_page()
-            image_name = cmd_parser.next_str("name")
+            obj_name = cmd_parser.next_str("name")
 
-            image = self.get_object(image_name)
-            image_path = self.write_object(image)
-            Platform.OpenFile(image_path)
+            self.get_object(obj_name).show()
 
             raise exceptions.ShellContinue()
         elif short == "w":
             self.raise_if_no_page()
-            image_name = cmd_parser.next_str(name = "name")
-            filename = cmd_parser.next_str_or(image_name, name = "filename")
+            obj_name = cmd_parser.next_str(name = "name")
+            filename = cmd_parser.next_str_or(obj_name, name = "filename")
 
-            image = self.get_object(image_name)
-            self.write_object(image, pathlib.Path(filename))
+            obj = self.get_object(obj_name)
+            self.write_object(obj, pathlib.Path(filename))
 
             raise exceptions.ShellContinue()
 
@@ -211,7 +259,7 @@ class TinkerRunner(shells.ShellRunner):
     def save(self):
         if self.current_page_pdf is None:
             return
-        self.pdf[self.current_page_num] = self.current_page()
+        self.pdf.pages_set(self.current_page_num, self.current_page())
         self.current_page_pdf.write()
 
     def exit(self):

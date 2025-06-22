@@ -22,8 +22,8 @@ program_info = info.ProgramInfo(
             pdfriend help
                 prints out generic help message, with a command list
     """),
-    info.CommandInfo("merge", "m", descr = """ [filename1] [filename2?] ... [-o|--outfile outfile?=pdfriend_output.pdf] [-q|--quality quality?=100]
-        merge the given files into one pdf. It can handle multiple pdfs, as well convert and merge png and jpg images. Glob patterns are also supported. You can specify the output filename using the -o or --outfile flag, otherwise it defaults to pdfriend_output.pdf. You can also specify the quality when images are converted to pdfs via the -q or --quality flag. It's an integer going from 0 to 100, 100 is no lossy compression and 0 is full lossy compression.
+    info.CommandInfo("merge", "m", descr = """ [filename1] [filename2?] ... [-o|--output?=pdfriend_output.pdf] [-q|--quality?=100]
+        merge the given files into one pdf. It can handle multiple pdfs and will convert images before merging. Glob patterns are also supported. You can specify the output filename using the -o or --output flag, otherwise it defaults to pdfriend_output.pdf. You can also specify the quality when images are converted to pdfs via the -q or --quality flag. It's an integer going from 0 to 100, 100 is no lossy compression and 0 is full lossy compression.
 
     examples:
         pdfriend merge pdf1.pdf img.png pdf2.pdf -o merged.pdf
@@ -33,7 +33,7 @@ program_info = info.ProgramInfo(
         pdfriend merge pdf1.pdf folder_name/* img.jpg pdf2.pdf -o apricot.pdf
             merges every file given, including all files in folder_name, into apricot.pdf
     """),
-    info.CommandInfo("split", "s", descr = """ [filename] [pages] ... [-o|--outfile outfile?=pdfriend_output]
+    info.CommandInfo("split", "s", descr = """ [filename] [pages] ... [-o|--output?=pdfriend_output]
         split the given file at the given points. Every point is included in the part after, not before it.
 
         examples:
@@ -71,7 +71,7 @@ program_info = info.ProgramInfo(
             pdfriend tinker fried.pdf -I some_commands.txt
                 executes the commands in some_commands.txt and immediately exits the tinker shell
     """),
-    info.CommandInfo("invert", "i", descr = """ [filename] [-o|--outfile outfile?=pdfriend_output.pdf] [-i|--inplace?]
+    info.CommandInfo("invert", "i", descr = """ [filename] [-o|--output output?=pdfriend_output.pdf] [-i|--inplace?]
         create a PDF file with the pages of the input file, but in inverted order. Adding -i or --inplace will make it so the input file is modified, instead of creating a new one.
 
         examples:
@@ -87,7 +87,7 @@ program_info = info.ProgramInfo(
             pdfriend cache clear
                 clears the cache
     """),
-    info.CommandInfo("weave", "w", descr = """ [filename_0] [filename_1] [-o|--outfile?=pdfriend_output.pdf]
+    info.CommandInfo("weave", "w", descr = """ [filename_0] [filename_1] [-o|--output?=pdfriend_output.pdf]
         combines two PDFs such that the first fills the odd pages and the second the even pages of the output.
 
         examples:
@@ -96,7 +96,7 @@ program_info = info.ProgramInfo(
             pdfriend weave k.pdf l.pdf -o weaved.pdf
                 weaves the two PDFs and saves the output to weaved.pdf
     """),
-    info.CommandInfo("get", "g", descr = """ [filename] [pages] [-o|--outfile?=pdfriend_output.pdf] [-i|--inplace?]
+    info.CommandInfo("get", "g", descr = """ [filename] [pages] [-o|--output?=pdfriend_output.pdf] [-i|--inplace?]
         takes the given pages out of the PDF and puts them in the specified output file.
 
         examples:
@@ -111,7 +111,7 @@ program_info = info.ProgramInfo(
             pdfriend get notes.pdf 3,4:15,18,20 -i
                 gets pages 3,4,5,...,15,18,20 from notes.pdf and MODIFIES the file such that it only has those pages
     """),
-    info.CommandInfo("encrypt", "n", descr = """ [filename] [-o|--outfile?=pdfriend_output.pdf] [-i|--inplace?]
+    info.CommandInfo("encrypt", "n", descr = """ [filename] [-o|--output?=pdfriend_output.pdf] [-i|--inplace?]
         creates an encrypted PDF file using a provided password. Adding -i or --inplace will make it so that the file itself is encrypted.
 
         examples:
@@ -122,7 +122,7 @@ program_info = info.ProgramInfo(
             pdfriend encrypt acct.pdf
                 encrypts acct.pdf and saves to pdfriend_output.pdf.
     """),
-    info.CommandInfo("decrypt", "d", descr = """ [filename] [-o|--outfile?=pdfriend_output.pdf] [-i|--inplace?]
+    info.CommandInfo("decrypt", "d", descr = """ [filename] [-o|--output?=pdfriend_output.pdf] [-i|--inplace?]
         decrypts an encrypted PDF file using a provided password. Adding -i or --inplace will make it so that the file itself is decrypted. If the file is not encrypted, it will just be copied.
 
         examples:
@@ -153,11 +153,12 @@ program_info = info.ProgramInfo(
                 removes the PDF's author and producer fields.
     """),
     foreword = """pdfriend: a command line utility for easily modifying PDF files
-    usage: pdfriend [command] [arguments?] [-d|--debug?] (note that options in [] are required and options in [?] are not). Use -d or --debug for more detailed error messages.
-    the following commands are available:
+        usage: pdfriend [command] [arguments?] [-d|--debug?] (note that options in [] are required and options in [?] are not). Use -d or --debug for more detailed error messages.\n
+        the following commands are available:
     """,
-    postword = """use pdfriend help [command] to get the instructions for particular commands"""
+    postword = """\n  use pdfriend help [command] to get the instructions for particular commands"""
 )
+
 
 def run_pdfriend(args):
     try:
@@ -179,7 +180,7 @@ def run_pdfriend(args):
                 print("You need to specify at least one file or pattern to be merged")
                 return
 
-            commands.merge(cmd_parser.args, args.outfile, args.quality)
+            commands.merge(cmd_parser.args, args.output, args.quality)
         elif short == "e":
             pdf = cmd_parser.next_pdf("filename")
 
@@ -206,9 +207,9 @@ def run_pdfriend(args):
             pdf = cmd_parser.next_pdf("filename")
 
             if args.inplace:
-                args.outfile = pdf.source
+                args.output = pdf.source
 
-            commands.invert(pdf, args.outfile)
+            commands.invert(pdf, args.output)
         elif short == "c":
             subcommand = cmd_parser.next_str("subcommand")
 
@@ -217,35 +218,35 @@ def run_pdfriend(args):
             pdf_0 = cmd_parser.next_pdf("filename_0")
             pdf_1 = cmd_parser.next_pdf("filename_1")
 
-            commands.weave(pdf_0, pdf_1, args.outfile)
+            commands.weave(pdf_0, pdf_1, args.output)
         elif short == "s":
             pdf = cmd_parser.next_pdf("filename")
             slice = cmd_parser.next_pdf_slice(pdf, name = "pages")
 
-            commands.split(pdf, slice, args.outfile)
+            commands.split(pdf, slice, args.output)
         elif short == "g":
             pdf = cmd_parser.next_pdf("filename")
             slice = cmd_parser.next_pdf_slice(pdf, name = "pages")
 
             if args.inplace:
-                args.outfile = pdf.source
+                args.output = pdf.source
 
-            commands.get(pdf, slice, args.outfile)
+            commands.get(pdf, slice, args.output)
         elif short == "n":
             pdf = cmd_parser.next_pdf("filename")
 
             if args.inplace:
-                args.outfile = pdf.source
+                args.output = pdf.source
 
-            commands.encrypt(pdf, args.outfile)
+            commands.encrypt(pdf, args.output)
         elif short == "d":
             infile = cmd_parser.next_file("filename")
 
             if args.inplace:
-                args.outfile = infile
+                args.output = infile
 
-            commands.decrypt(infile, args.outfile)
-        elif short == "meta":
+            commands.decrypt(infile, args.output)
+        elif short == "M":
             pdf = cmd_parser.next_pdf("filename")
 
             commands.metadata(pdf, args.get, args.set, args.pop)
@@ -270,7 +271,7 @@ def main():
     parser.add_argument("-v", "--version", action="store_true")
     parser.add_argument("-d", "--debug", action="store_true")
 
-    parser.add_argument("-o", "--outfile", type=str, default="pdfriend_output")
+    parser.add_argument("-o", "--output", type=str, default="pdfriend_output")
     parser.add_argument("-i", "--inplace", action="store_true")
     parser.add_argument("-q", "--quality", type=int, default=100)
     parser.add_argument("-I", "--import", type=str, default=None)

@@ -103,7 +103,7 @@ program_info = info.ProgramInfo(
                 exports your commands to out.txt
     """),
     foreword = "pdfriend edit shell for quick changes. Commands:",
-    postword = "use h [command] to learn more about a specific command"
+    postword = "  use h [command] to learn more about a specific command"
 )
 
 

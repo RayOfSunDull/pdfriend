@@ -106,6 +106,14 @@ class PageContainer(ABC):
         self.set_pages(func(self.get_pages(), *args, **kwargs))
         return self
 
+    def pages_get(self, idx: int) -> Any:
+        return self.get_pages()[idx]
+
+    def pages_set(self, idx: int, page_obj: Any):
+        pages = self.get_pages()
+        pages[idx] = page_obj
+        self.set_pages(pages)
+
     def pages_pop(self, idx: int) -> Any:
         pages = self.get_pages()
         result = pages.pop(idx)
