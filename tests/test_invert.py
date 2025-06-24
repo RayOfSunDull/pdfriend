@@ -12,7 +12,7 @@ def test_invert():
     fm.new_pdf(path, pages)
     fm.register(path_inv)
 
-    run_pdfriend(make_args(["invert", path], outfile = path_inv))
+    run_pdfriend(make_args(["invert", path], output = path_inv))
 
     pdf_inv = ModelPDF.Read(path_inv)
 

@@ -4,11 +4,11 @@ from helpers.managers import FileManager
 fm = FileManager.New()
 
 
-def test_invert():
+def test_outputs():
     path = "model.pdf"
     fm.new_pdf(path, range(10))
 
-    assert check_one_output_command(
+    check_one_output_command(
         commands = ["invert", path],
         input = path,
     )

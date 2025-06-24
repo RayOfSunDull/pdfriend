@@ -126,7 +126,7 @@ class CmdParser:
 
         return self.advance(head, tail)
 
-    def next_str_or(self, default: str, name: str | None = None) -> str:
+    def next_str_or(self, name: str | None = None, default: str = "") -> str:
         try:
             return self.next_str(name)
         except Exception:

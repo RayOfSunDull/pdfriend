@@ -29,7 +29,7 @@ def test_split():
 
     run_pdfriend(make_args(
         ["split", path_0, ",".join([str(split) for split in splits[:-1]])],
-        outfile = out_dir
+        output = out_dir
     ))
 
     for out_path, out_model in zip(out_paths, out_models):

@@ -17,7 +17,7 @@ def test_weave():
 
     run_pdfriend(make_args(
         ["weave", path_0, path_1],
-        outfile = path_out
+        output = path_out
     ))
 
     pdf_out = ModelPDF.Read(path_out)

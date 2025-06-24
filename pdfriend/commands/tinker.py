@@ -124,6 +124,17 @@ class ImageDocObject(DocObject):
         return self._obj.data
 
 
+def iter_pdf_page_objects(page_obj) -> Iterator[DocObject]:
+    iter = page_obj.images.__iter__()
+    while True:
+        try:
+            yield ImageDocObject(next(iter))
+        except Exception as e:
+            if Config.Debug:
+                print(f"Failed to list objects: {e}")
+            break
+
+
 class TinkerRunner(shells.ShellRunner):
     def __init__(self, pdf: wrappers.PDFWrapper, open_pdf: bool = True, open_page: bool = True):
         backup_path = pdf.backup()
@@ -151,14 +162,7 @@ class TinkerRunner(shells.ShellRunner):
             )
 
     def iter_objects(self) -> Iterator[DocObject]:
-        iter = self.current_page().images.__iter__()
-        while True:
-            try:
-                yield ImageDocObject(next(iter))
-            except Exception as e:
-                if Config.Debug:
-                    print(f"Failed to list objects: {e}")
-                break
+        return iter_pdf_page_objects(self.current_page())
 
     def get_object(self, obj_name: str) -> DocObject:
         for obj in self.iter_objects():

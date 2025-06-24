@@ -96,7 +96,16 @@ program_info = info.ProgramInfo(
             pdfriend weave k.pdf l.pdf -o weaved.pdf
                 weaves the two PDFs and saves the output to weaved.pdf
     """),
-    info.CommandInfo("get", "g", descr = """ [filename] [pages] [-o|--output?=pdfriend_output.pdf] [-i|--inplace?]
+    info.CommandInfo("get", "g", descr = """ [subcommand] [filename] [pages?=all] [-o|--output?=pdfriend_output.pdf]
+        extracts some element from each given page, based on the subcommand. Currently, only \"images\" is supported.
+
+        examples:
+            pdfriend get images notes.pdf -o notes_folder
+                gets all images in notes.pdf and puts them in notes_folder
+            pdfriend get images notes.pdf 1,5,6,9 -o notes_folder
+                gets all images from pages 1,5,6,9 in notes.pdf and puts them in notes_folder
+    """),
+    info.CommandInfo("subset", "sub", descr = """ [filename] [pages] [-o|--output?=pdfriend_output.pdf] [-i|--inplace?]
         takes the given pages out of the PDF and puts them in the specified output file.
 
         examples:
@@ -225,13 +234,19 @@ def run_pdfriend(args):
 
             commands.split(pdf, slice, args.output)
         elif short == "g":
+            subcommand = cmd_parser.next_str("subcommand")
+            pdf = cmd_parser.next_pdf("filename")
+            slice_str = cmd_parser.next_str_or("pages", default = "all")
+
+            commands.get(subcommand, pdf, pdf.pages_view(slice_str), args.output)
+        elif short == "sub":
             pdf = cmd_parser.next_pdf("filename")
             slice = cmd_parser.next_pdf_slice(pdf, name = "pages")
 
             if args.inplace:
                 args.output = pdf.source
 
-            commands.get(pdf, slice, args.output)
+            commands.subset(pdf, slice, args.output)
         elif short == "n":
             pdf = cmd_parser.next_pdf("filename")
 

@@ -26,7 +26,7 @@ def test_merge():
 
     run_pdfriend(make_args(
         ["merge", *input_paths],
-        outfile = output_path
+        output = output_path
     ))
 
     output_pdf = fm.read_pdf(output_path)

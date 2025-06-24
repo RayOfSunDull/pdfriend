@@ -86,6 +86,12 @@ except Exception as e:
     metadata = _BrokenFunc("metadata", e)
 
 try:
+    from pdfriend.commands.subset import subset
+except Exception as e:
+    _log_import_error("subset", e)
+    subset = _BrokenFunc("subset", e)
+
+try:
     from pdfriend.commands.get import get
 except Exception as e:
     _log_import_error("get", e)

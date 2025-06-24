@@ -28,7 +28,7 @@ def check_one_output_command(
     run_pdfriend(make_args(commands, **kwargs))
     checks.append(check_existence(default_output, remove = True))
 
-    run_pdfriend(make_args(commands, outfile = forced_output, **kwargs))
+    run_pdfriend(make_args(commands, output = forced_output, **kwargs))
     checks.append(check_existence(forced_output, remove = True))
 
     run_pdfriend(make_args(commands, inplace = True, **kwargs))

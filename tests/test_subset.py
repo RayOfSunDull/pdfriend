@@ -6,7 +6,7 @@ from pathlib import Path
 from random import randrange
 
 
-def test_invert():
+def test_subset():
     fm = FileManager.New()
 
     size = 10
@@ -21,8 +21,8 @@ def test_invert():
     fm.register(path_got)
 
     run_pdfriend(make_args(
-        ["get", path, ",".join([str(pick) for pick in picks])],
-        outfile = path_got)
+        ["subset", path, ",".join([str(pick) for pick in picks])],
+        output = path_got)
     )
 
     pdf_got = ModelPDF.Read(path_got)
